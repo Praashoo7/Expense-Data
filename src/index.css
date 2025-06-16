@@ -490,7 +490,7 @@ input{
     --color2: #111111;
     --color3: #252525;
     --color4: #efefef;
-    --color5: black;
+    --color5: #0a0a0a;
     --color6: #151515;
     --color7: #353535;
     --color9: #252525;
@@ -501,7 +501,7 @@ input{
     --color2: #eeeeee;
     --color3: #dadada;
     --color4: #101010;
-    --color5: white;
+    --color5: rgb(238, 238, 238);
     --color6: rgba(0, 0, 0, 0.1);
     --color7: #cacaca;
     --color9: #dadada;
