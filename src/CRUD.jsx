@@ -661,17 +661,17 @@ function CRUD(){
                     <h1>Info</h1>
                     <div className="infoData" style={{ fontSize: "0.85em" }}>
                         <div style={{ marginBottom: "0.5em" }}>KeyBoard Shortcuts</div>
-                        <div style={{ padding: "1em", backgroundColor: "var(--color7)", display: "flex", gap: "0.5em", flexDirection: "column" }}>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
+                        <div style={{ padding: "1em", display: "flex", gap: "0.5em", flexDirection: "column" }}>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
                         </div>
-                        <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
+                        <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
                         <li style={{ marginTop: "0.5em" }}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
                         
                     </div>
