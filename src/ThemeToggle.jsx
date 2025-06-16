@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import NButton from "./NButton";
 
-function ThemeToggle() {
+function ThemeToggle(props) {
     const [theme, setTheme] = useState("light");
 
     useEffect(() => {
@@ -41,7 +41,7 @@ function ThemeToggle() {
                 }
             `}</style>
 
-            <NButton className="theme-toggle-btn" btnID={"themeBtn"} clickData={toggleTheme} width={"5em"} btnName={theme === "dark" ? "Dark" : "Light"} />
+            <NButton className="theme-toggle-btn" btnID={"themeBtn"} clickData={toggleTheme} width={props.btnWidth} btnName={theme === "dark" ? "Dark" : "Light"} />
         </>
     );
 }

@@ -133,7 +133,7 @@ function CRUD(){
                 document.getElementById("pricePText").textContent = "Price : " + item.itemPrice
                 document.getElementById("datePText").textContent = "Date : " + item.itemDate
             }
-        })
+            })
         }
     }
 
@@ -323,6 +323,27 @@ function CRUD(){
     }
 
 
+    // SYMMETRY
+
+    let topBarButtonsWidth1
+    let topBarButtonsWidth2
+    let topBarButtonsWidth3
+    const getScreenWidth = () => {
+        if(window.innerWidth <= 450){
+            topBarButtonsWidth1 = "6em"
+            topBarButtonsWidth2 = "6em"
+            topBarButtonsWidth3 = "7.75em"
+        } else {
+            topBarButtonsWidth1 = "2.75em"
+            topBarButtonsWidth2 = "5em"
+            topBarButtonsWidth3 = "8.75em"
+        }
+    }
+    getScreenWidth()
+    console.log(topBarButtonsWidth1)
+    console.log(topBarButtonsWidth2)
+
+
     // SAVE
 
     if(searching == false){
@@ -344,9 +365,10 @@ function CRUD(){
         const updateModal = document.getElementById("modalOverlayUpdate");
         const addModal = document.getElementById("modalOverlayAdd");
         const deleteModal = document.getElementById("modalOverlayDelete");
+        const infoModal = document.getElementById("modalOverlayInfo");
 
         const modalVisible =
-            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex";
+            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex";
 
         let focusScope = document;
         if (updateModal?.style.display === "flex") {
@@ -355,6 +377,8 @@ function CRUD(){
             focusScope = addModal;
         } else if (deleteModal?.style.display === "flex") {
             focusScope = deleteModal;
+        } else if (infoModal?.style.display === "flex") {
+            focusScope = infoModal;
         }
 
         const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
@@ -381,6 +405,10 @@ function CRUD(){
             }
             if (event.key.toLowerCase() === "t") {
                 const button = document.getElementById("themeBtn");
+                if (button) button.click();
+            }
+            if (event.key.toLowerCase() === "i") {
+                const button = document.getElementById("infoBtn");
                 if (button) button.click();
             }
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
@@ -454,6 +482,9 @@ function CRUD(){
             } else if (deleteModal?.style.display === "flex") {
             const button = document.getElementById("cancelBtnDelete");
             if (button) button.click();
+            } else if (infoModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnInfo");
+            if (button) button.click();
             }
         }
         };
@@ -462,20 +493,21 @@ function CRUD(){
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-    
-
     return(
         <>
         <div className="wrapper" id="wrapper">
             <div className="main" id="main">
                 <div className="topBar">
                     <h1>Expense Data</h1>
-                    <ThemeToggle />
+                    <div className="topBarBtns">
+                        <NButton btnID={"infoBtn"} clickData={() => openModal(null, "Info")} width={topBarButtonsWidth1} btnName={"i"}/>
+                        <ThemeToggle btnWidth={topBarButtonsWidth2} />
+                    </div>
                 </div>
                 <div className="search">
                     <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="searchInput" onChange={(e) => searchedData(e.target.value)}/>
                     <div className="searchBtns">
-                        <NButton btnID={"findBtn"} clickData={searchBy} width={"7.75em"} btnName={searchName}/>
+                        <NButton btnID={"findBtn"} clickData={searchBy} width={topBarButtonsWidth3} btnName={searchName}/>
                     </div>
                 </div>
                 <div className="sortBtns">
@@ -562,6 +594,35 @@ function CRUD(){
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDelete", "modalDelete")} width={"7em"} btnID={"cancelBtnDelete"} btnName={"Cancel"} />
                         <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName="Delete"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className="modalOverlay" id="modalOverlayInfo">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalInfo">
+                    <h1>Info</h1>
+                    <div className="infoData" style={{ fontSize: "0.85em" }}>
+                        <div style={{ marginBottom: "0.5em" }}>KeyBoard Shortcuts</div>
+                        <div style={{ padding: "1em", backgroundColor: "var(--color7)", display: "flex", gap: "0.5em", flexDirection: "column" }}>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
+                        </div>
+                        <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
+                        <li style={{ marginTop: "0.5em" }}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
+                        
+                    </div>
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayInfo", "modalInfo")} width={"7em"} btnID={"cancelBtnInfo"} btnName={"Close"} />
                     </div>
                 </div>
             </div>
