@@ -11,7 +11,7 @@ function CRUD(){
     const[itemData, setItemData] = useState(originalData)
     const [sortCount, setSortCount] = useState(0)
     const [sortName, setSortName] = useState("Sort By")
-    const [searchCount, setSearchCount] = useState(0)
+    const [searchCount, setSearchCount] = useState(2)
     const [searchName, setSearchName] = useState("Find By")
     const [searchData, setSearchData] = useState(originalData)
     const [searching, setSearching] = useState(false)
@@ -48,15 +48,16 @@ function CRUD(){
             }
         })
 
-        if (filteredData.length == 0 && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false) }
-        else { setMessageOpacity("0"); setNoDataVisibility(true) }
+        if (filteredData.length == 0 && originalData.length != 0) { setMessageOpacity("1"); setNoDataVisibility(true) }
+        else if(filteredData.length == 0 && originalData.length == 0) { setMessageOpacity("1"); setNoDataVisibility(true) }
+        else { setMessageOpacity("0"); setNoDataVisibility(false) }
 
         setSearchData(filteredData)
     }
 
     useEffect(() => {
-        if (itemData.length == 0  && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false); }
-        else { setMessageOpacity("0"); setNoDataVisibility(true) }
+        if (itemData.length == 0  && noDataVisibility == false) { setMessageOpacity("1"); setNoDataVisibility(true); }
+        else { setMessageOpacity("0"); setNoDataVisibility(false) }
     }, [itemData])
 
 
@@ -358,8 +359,6 @@ function CRUD(){
         }
     }
     getScreenWidth()
-    console.log(topBarButtonsWidth1)
-    console.log(topBarButtonsWidth2)
 
 
     // SAVE
