@@ -1,12 +1,26 @@
-# React + Vite
+# [Expense-Data](https://praashoo7.github.io/Expense-Data/)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+CRUD application built using React+Vite and with complete Keyboard navigation to manage the Expense data.<br><br>
 
-Currently, two official plugins are available:
+## Setup
+- Clone it!
+```sh
+git clone https://github.com/Praashoo7Expense-Data.git
+cd Expense-Data
+```
+- Install Dependencies :
+```sh
+npm install
+```
+- Start a local Web Server by running :
+```sh
+npm start
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Credits
 
-## Expanding the ESLint configuration
+JetBrains Font from [Google Fonts]([https://unsplash.com/](https://fonts.google.com/specimen/JetBrains+Mono))
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## License
+
+Expense-Data is open-source Software Licensed under the [MIT License](https://github.com/Praashoo7/Expense-Data/blob/main/LICENSE)
