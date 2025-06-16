@@ -525,6 +525,16 @@ input{
     width: auto;
     max-width: 450px;
   }
+  .total{
+    justify-content: center;
+  }
+  .bottomBar, .bBtns{
+    flex-direction: column;
+    gap: 0;
+  }
+  .deleteAllBtn, .addItemBtn{
+    width: 100%;
+  }
 }
 @media screen and (max-width: 450px) {
   .dataBtns, .itemData{
