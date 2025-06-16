@@ -661,7 +661,7 @@ function CRUD(){
                     <h1>Info</h1>
                     <div className="infoData" style={{ fontSize: "0.85em" }}>
                         <div style={{ marginBottom: "0.5em" }}>KeyBoard Shortcuts</div>
-                        <div style={{ padding: "1em", display: "flex", gap: "0.5em", flexDirection: "column" }}>
+                        <div style={{ padding: "1em", backgroundColor:"var(--color10)", display: "flex", gap: "0.5em", flexDirection: "column" }}>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>

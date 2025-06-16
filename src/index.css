@@ -494,6 +494,7 @@ input{
     --color6: #151515;
     --color7: #353535;
     --color9: #252525;
+    --color10: #202020;
 }
 [data-theme="dark"] {
     --color1: #171717;
@@ -504,6 +505,7 @@ input{
     --color6: rgba(0, 0, 0, 0.1);
     --color7: #cacaca;
     --color9: #dadada;
+    --color10: #e0e0e0;
 }
 
 
