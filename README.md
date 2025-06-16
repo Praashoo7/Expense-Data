@@ -1,11 +1,11 @@
 # [Expense-Data](https://praashoo7.github.io/Expense-Data/)
 
-CRUD application built using React+Vite and with complete Keyboard navigation to manage the Expense data.<br><br>
+CRUD application built using React+Vite and with complete Keyboard navigation to manage the Expense data.<br>
 
 ## Setup
 - Clone it!
 ```sh
-git clone https://github.com/Praashoo7Expense-Data.git
+git clone https://github.com/Praashoo7/Expense-Data.git
 cd Expense-Data
 ```
 - Install Dependencies :
