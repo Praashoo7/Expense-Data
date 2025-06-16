@@ -1,0 +1,580 @@
+import React, { useState, useEffect, useRef } from "react"
+import NButton from "./NButton"
+import ThemeToggle from "./ThemeToggle";
+
+function CRUD(){
+
+    let [originalData , setOriginalData] = useState([]);
+
+    originalData = JSON.parse(localStorage.getItem("Expenses")) || []
+
+    const[itemData, setItemData] = useState(originalData)
+    const [sortCount, setSortCount] = useState(0)
+    const [sortName, setSortName] = useState("Sort By")
+    const [searchCount, setSearchCount] = useState(0)
+    const [searchName, setSearchName] = useState("Find By")
+    const [searchData, setSearchData] = useState(originalData)
+    const [searching, setSearching] = useState(false)
+    const [messageOpacity, setMessageOpacity] = useState("0");
+    const [noDataVisibility, setNoDataVisibility] = useState(false)
+
+
+    // SEARCH
+
+    function searchBy(){
+        if(searchCount == 0){ setSearchName("Price"); setSearchCount(1)}
+        else if(searchCount == 1){ setSearchName("Date"); setSearchCount(2) }
+        // else if(searchCount == 2){ setSearchName("Month"); setSearchCount(3) }
+        // else if(searchCount == 3){ setSearchName("Year"); setSearchCount(4) }
+        else if(searchCount == 2){ setSearchName("Name"); setSearchCount(0) }
+    }
+
+    const searchedData = (value) => {
+
+        if(!value.trim()){
+            setSearchData(originalData)
+            return
+        }
+
+        const filteredData = originalData.filter((item) => {
+            if(searchName == "Name" || searchName == "Find By"){
+                return item.itemName.toLowerCase().includes(value.toLowerCase())
+            }
+            else if (searchName == "Price") {
+                return item.itemPrice.includes(value)
+            }
+            else if (searchName == "Date") {
+                return item.itemDate.includes(value)
+            }
+        })
+
+        if (filteredData.length == 0 && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false) }
+        else { setMessageOpacity("0"); setNoDataVisibility(true) }
+
+        setSearchData(filteredData)
+    }
+
+    useEffect(() => {
+        if (itemData.length == 0  && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false) }
+        else { setMessageOpacity("0"); setNoDataVisibility(true) }
+    }, [itemData])
+
+
+    // PARSE-DATE
+
+    function parseDate(date){
+        const [day, month, year] = date.split("-")
+        return new Date(`${year}-${month}-${day}`)
+    }
+
+
+    // TOTAL
+
+    function totalExpense(){
+        let total = 0
+        itemData.forEach((item) => {
+            let itemValue = 0
+            if(item.itemPrice == "None") { itemValue = "0$" } else { itemValue = item.itemPrice }
+            const allExpenses = parseFloat(itemValue.replace("$",""))
+            total += allExpenses
+        })
+        return `${total}$`
+    }
+
+
+    // OPEN-MODAL
+
+    function openModal(index, modalName){
+        document.getElementById(`modal${modalName}`).style.display = "flex"
+        document.getElementById(`modalOverlay${modalName}`).style.display = "flex"
+        document.getElementById(`wrapper`).style.filter = "blur(5px)"
+        document.getElementById("btnModalAdd").style.opacity = 0.5
+        document.getElementById("btnModalAdd").style.pointerEvents = "none"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.animation = "none"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.animation = "none"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.animation = "none"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.animation = "none"
+        setTimeout(() => {
+            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.opacity = 1
+            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.opacity = 1
+            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.opacity = 1
+            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.opacity = 1
+        }, 100);
+        setTimeout(() => {
+            document.getElementById(`modal${modalName}`).style.opacity = "1"
+        }, 300);
+
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.animation = "0.35s openCorner1 linear forwards"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.animation = "0.35s openCorner2 linear forwards"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.animation = "0.35s openCorner3 linear forwards"
+        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.animation = "0.35s openCorner4 linear forwards"
+
+        if(modalName == "Update"){
+            itemData.map((item, itemIndex) => {
+                if(itemIndex == index){
+                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).value = ""
+                    document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).value = ""
+                    document.getElementById(`${modalName.toLowerCase()}ModalDateData`).value = ""
+                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).placeholder = item.itemName.trim();
+                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).setAttribute("data-key", itemIndex)
+                    document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).placeholder = item.itemPrice.replace("$","").trim();
+                    document.getElementById(`${modalName.toLowerCase()}ModalDateData`).placeholder = item.itemDate
+                }
+            })
+        } else if(modalName == "Add"){
+            document.getElementById(`${modalName.toLowerCase()}ModalNameData`).value = ""
+            document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).value = ""
+            document.getElementById(`${modalName.toLowerCase()}ModalDateData`).value = ""
+        } else if(modalName == "Delete"){
+            document.getElementById("btnModalDelete").setAttribute("indexKey", index)
+            itemData.map((item, itemIndex) => {
+            if(itemIndex == index){
+                document.getElementById("namePText").textContent = "Name : " + item.itemName
+                document.getElementById("pricePText").textContent = "Price : " + item.itemPrice
+                document.getElementById("datePText").textContent = "Date : " + item.itemDate
+            }
+        })
+        }
+    }
+
+
+    // CLOSE-MODAL
+
+    function closeModal(value, value1){
+
+        document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
+        document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
+        document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
+        document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "none"
+        document.querySelector(`#${value} #menuWrapper #corner1`).style.opacity = 1
+        document.querySelector(`#${value} #menuWrapper #corner2`).style.opacity = 1
+        document.querySelector(`#${value} #menuWrapper #corner3`).style.opacity = 1
+        document.querySelector(`#${value} #menuWrapper #corner4`).style.opacity = 1
+        document.getElementById(value1).style.opacity = "0"
+        setTimeout(() => {
+            document.getElementById(value).style.display = "none"
+            document.getElementById(value1).style.display = "none"
+            document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
+            document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
+            document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
+            document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "none"
+        }, 300);
+        document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "0.35s closeCorner1 linear forwards"
+        document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "0.35s closeCorner2 linear forwards"
+        document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "0.35s closeCorner3 linear forwards"
+        document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "0.35s closeCorner4 linear forwards"
+
+        setTimeout(() => {
+            document.querySelector(`#${value} #menuWrapper #corner1`).style.opacity = 0
+            document.querySelector(`#${value} #menuWrapper #corner2`).style.opacity = 0
+            document.querySelector(`#${value} #menuWrapper #corner3`).style.opacity = 0
+            document.querySelector(`#${value} #menuWrapper #corner4`).style.opacity = 0
+            document.getElementById("wrapper").style.filter = "blur(0px)"
+        }, 300);
+    }
+
+
+    // DELETE-EXPENSE
+
+    function deleteExpense(){
+        let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
+        setItemData(itemData.filter((newData, index) => index != value))
+
+        closeModal("modalOverlayDelete", "modalDelete")
+    }
+
+    function addBtnCheck(){
+        if(document.getElementById("addModalNameData").value == ""){
+            document.getElementById("btnModalAdd").style.opacity = 0.5
+            document.getElementById("btnModalAdd").style.pointerEvents = "none"
+        } else {
+            document.getElementById("btnModalAdd").style.opacity = 1
+            document.getElementById("btnModalAdd").style.pointerEvents = "auto"
+        }
+    }
+
+
+    // ADD-EXPENSE
+
+    function addExpense(){
+        const name = document.getElementById("addModalNameData").value
+        const price = document.getElementById("addModalPriceData").value
+        const date = document.getElementById("addModalDateData").value
+
+        let nameAddArray = name.split(",")
+        let nameAddCheck = nameAddArray.filter((name) => isNaN(name) && isNaN(parseFloat(name)))
+
+        let priceAddArray = price.split(",")
+        let priceAddCheck = priceAddArray.filter((price) => {
+            if (typeof price === "number") return true;
+            if (typeof price === "string") return /^-?\d+(\.\d+)?$/.test(price.trim());
+            return false;
+        })
+
+        const dateAddFilter = (str) => {
+        const regex = /^([0-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}$/;
+        if (!regex.test(str)) return false;
+        const [day, month, year] = str.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
+        return (
+            date.getFullYear() === year &&
+            date.getMonth() === month - 1 &&
+            date.getDate() === day
+        );
+        };
+        let dateAddArray = date.split(",").map((item) => item.trim())
+        const validDates = dateAddArray.filter(dateAddFilter)
+
+        const newItems = nameAddCheck.map((name, index) => ({
+            itemName: name || "None",
+            itemPrice: priceAddCheck[index] ? `${priceAddCheck[index]}$` : "None",
+            itemDate: validDates[index] || "None"
+        }))
+
+        setItemData(prev => [...prev, ...newItems])
+        closeModal("modalOverlayAdd", "modalAdd")
+    }
+
+
+    // UPDATE-EXPENSE
+
+    function updateExpense(){
+        const name = document.getElementById("updateModalNameData").value
+        const price = document.getElementById("updateModalPriceData").value
+        let date = document.getElementById("updateModalDateData").value
+
+        const dataKey = document.getElementById("updateModalNameData").getAttribute("data-key")
+        const indexToUpdate = parseInt(dataKey)
+
+        let nameCheck
+        if(isNaN(name) && isNaN(parseFloat(name))){
+            nameCheck = name
+        }
+
+        let priceCheck;
+        if (typeof price === "number"){
+            priceCheck = parseFloat(price)
+        } else if (typeof price === "string" && /^-?\d+(\.\d+)?$/.test(price.trim())) {
+            priceCheck = parseFloat(price.trim())
+        }
+
+        const originalItem = itemData[indexToUpdate]
+        const isValid = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/.test(date)
+        if(!isValid){
+            date = originalItem.itemDate
+        }
+
+        const updatedItem = {
+            itemName: nameCheck || originalItem.itemName,
+            itemPrice: priceCheck ? `${priceCheck}$` : originalItem.itemPrice,
+            itemDate: date || originalItem.itemDate
+        }
+
+        const updatedData = [...itemData]
+        updatedData[indexToUpdate] = updatedItem
+        setItemData(updatedData)
+        closeModal("modalOverlayUpdate", "modalUpdate")
+    }
+
+
+    // SORT
+
+    function sortBy(){
+        const sorted = [...itemData]
+
+        if(sortCount == 0){
+            setSortName("A-Z")
+            setSortCount(1)
+            sorted.sort((a,b) => a.itemName.localeCompare(b.itemName))
+            setItemData(sorted)
+        } else if(sortCount == 1){
+            setSortName("Z-A")
+            setSortCount(2)
+            sorted.sort((a,b) => b.itemName.localeCompare(a.itemName))
+            setItemData(sorted)
+        } else if(sortCount == 2){
+            setSortName("0-1")
+            setSortCount(3)
+            sorted.sort((a, b) => a.itemPrice.replace("$","") - b.itemPrice.replace("$",""))
+            setItemData(sorted)
+        } else if(sortCount == 3){
+            setSortName("1-0")
+            setSortCount(4)
+            sorted.sort((a, b) => b.itemPrice.replace("$","") - a.itemPrice.replace("$",""))
+            setItemData(sorted)
+        } else if(sortCount == 4){
+            setSortName("00-00-0000")
+            setSortCount(5)
+            sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate))
+            setItemData(sorted)
+        } else if(sortCount == 5){
+            setSortName("11-11-1111")
+            setSortCount(0)
+            sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate))
+            setItemData(sorted)
+        }
+    }
+
+
+    // CLOSE-INFO
+
+    function closeAddExpenseInfo(){
+        document.getElementById("addExpenseInfo").style.display = "none"
+    }
+
+
+    // SAVE
+
+    if(searching == false){
+        localStorage.setItem("Expenses", JSON.stringify(itemData))
+    }
+
+
+    // KEYBOARD
+
+    const [keyboardMode, setKeyboardMode] = useState(false);
+    const keyboardModeRef = useRef(false);
+
+    useEffect(() => {
+        keyboardModeRef.current = keyboardMode;
+    }, [keyboardMode]);
+
+    useEffect(() => {
+        const handleKeyDown = (event) => {
+        const updateModal = document.getElementById("modalOverlayUpdate");
+        const addModal = document.getElementById("modalOverlayAdd");
+        const deleteModal = document.getElementById("modalOverlayDelete");
+
+        const modalVisible =
+            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex";
+
+        let focusScope = document;
+        if (updateModal?.style.display === "flex") {
+            focusScope = updateModal;
+        } else if (addModal?.style.display === "flex") {
+            focusScope = addModal;
+        } else if (deleteModal?.style.display === "flex") {
+            focusScope = deleteModal;
+        }
+
+        const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
+
+        const activeElement = document.activeElement;
+        const isTyping =
+            activeElement &&
+            (activeElement.tagName === "INPUT" ||
+            activeElement.tagName === "TEXTAREA" ||
+            activeElement.isContentEditable);
+
+        if (!modalVisible && !isTyping) {
+            if (event.key.toLowerCase() === "a") {
+                const button = document.getElementById("btnAddOpen");
+                if (button) button.click();
+            }
+            if (event.key.toLowerCase() === "f") {
+                const button = document.getElementById("findBtn");
+                if (button) button.click();
+            }
+            if (event.key.toLowerCase() === "s") {
+                const button = document.getElementById("sortBtn");
+                if (button) button.click();
+            }
+            if (event.key.toLowerCase() === "t") {
+                const button = document.getElementById("themeBtn");
+                if (button) button.click();
+            }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+                event.preventDefault();
+                const inputFocus = document.getElementById("searchInput");
+            if (inputFocus) inputFocus.focus();
+        }
+        }
+
+        if (event.key === "Enter" && !keyboardModeRef.current) {
+            if (updateModal?.style.display === "flex") {
+            const button = document.getElementById("btnModalUpdate");
+            if (button) button.click();
+            } else if (addModal?.style.display === "flex") {
+            const button = document.getElementById("btnModalAdd");
+            if (button) button.click();
+            } else if (deleteModal?.style.display === "flex") {
+            const button = document.getElementById("btnModalDelete");
+            if (button) button.click();
+            }
+        }
+
+        if (["ArrowDown", "ArrowRight"].includes(event.key)) {
+            event.preventDefault();
+            setKeyboardMode(true);
+            const focusable = getFocusable();
+            const currentIndex = focusable.indexOf(document.activeElement);
+            const nextIndex = (currentIndex + 1) % focusable.length;
+            focusable[nextIndex]?.focus();
+        }
+
+        if (["ArrowUp", "ArrowLeft"].includes(event.key)) {
+            event.preventDefault();
+            setKeyboardMode(true);
+            const focusable = getFocusable();
+            const currentIndex = focusable.indexOf(document.activeElement);
+            const prevIndex = currentIndex === 0 ? focusable.length - 1 : currentIndex - 1;
+            focusable[prevIndex]?.focus();
+        }
+
+        if (event.key === "Enter" && keyboardModeRef.current) {
+            event.preventDefault();
+            const el = document.activeElement;
+            if (el) {
+            el.classList.add("key-press-active");
+            setTimeout(() => {
+                el.classList.remove("key-press-active");
+            }, 100);
+
+            ["mousedown", "mouseup", "click"].forEach((type) => {
+                const evt = new MouseEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                view: window,
+                });
+                el.dispatchEvent(evt);
+            });
+            }
+        }
+
+        if (event.key === "Escape") {
+            setKeyboardMode(false);
+            document.activeElement.blur();
+
+            if (updateModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnUpdate");
+            if (button) button.click();
+            } else if (addModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnAdd");
+            if (button) button.click();
+            } else if (deleteModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnDelete");
+            if (button) button.click();
+            }
+        }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, []);
+
+    
+
+    return(
+        <>
+        <div className="wrapper" id="wrapper">
+            <div className="main" id="main">
+                <div className="topBar">
+                    <h1>Expense Data</h1>
+                    <ThemeToggle />
+                </div>
+                <div className="search">
+                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="searchInput" onChange={(e) => searchedData(e.target.value)}/>
+                    <div className="searchBtns">
+                        <NButton btnID={"findBtn"} clickData={searchBy} width={"7.75em"} btnName={searchName}/>
+                    </div>
+                </div>
+                <div className="sortBtns">
+                    <NButton btnID={"sortBtn"} clickData={sortBy} width={"7.75em"} btnName={sortName}/>
+                </div>
+                <div className="dataItems">
+                    <div className="noData" id="noData" style={{ opacity: messageOpacity }}>No Expenses!</div>
+                    {(searching ? searchData : itemData).map((item, index) => (
+                    <React.Fragment key={index}>
+                    <div className="item">
+                        <div className="itemData">
+                            <span className="itemIndex">[ {index} ]</span>
+                            <span className="itemName">{item.itemName}</span>
+                            <span style={{ fontWeight: "bold" }} className="itemExpense">- {item.itemPrice}</span>
+                        </div>
+                        <div className="dataBtns">
+                            <span className="itemDate">{item.itemDate}</span>
+                            <NButton clickData={() => openModal(index, "Update")} width={"7em"} btnName={"Update"} />
+                            <NButton clickData={() => openModal(index, "Delete")} width={"7em"} btnName={"Delete"} />
+                        </div>
+                    </div>
+                    <div className="divider"></div>
+                    </React.Fragment>
+                    ))}
+                </div>
+            </div>
+            <div className="total">
+                <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
+            </div>
+            <div className="addItemBtn">
+                <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"3em"} btnName={"Add Expense"} />
+            </div>
+        </div>
+        <div className="modalOverlay" id="modalOverlayUpdate">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalUpdate">
+                    <h1>Update Expense</h1>
+                    <input tabIndex={0} autoComplete="off" id="updateModalNameData" type="text" />
+                    <input tabIndex={0} autoComplete="off" id="updateModalPriceData" type="text" />
+                    <input tabIndex={0} autoComplete="off" id="updateModalDateData" type="text" />
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayUpdate", "modalUpdate")} width={"7em"} btnID={"cancelBtnUpdate"} btnName={"Cancel"} />
+                        <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName="Update"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className="modalOverlay" id="modalOverlayAdd">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalAdd">
+                    <h1>Add Expense</h1>
+                    <input tabIndex={0} autoComplete="off" id="addModalNameData" type="text" placeholder="Name" onChange={addBtnCheck} />
+                    <input tabIndex={0} autoComplete="off" id="addModalPriceData" type="text" placeholder="Price" onChange={addBtnCheck} />
+                    <input tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} />
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayAdd", "modalAdd")} width={"7em"} btnID={"cancelBtnAdd"} btnName={"Cancel"} />
+                        <NButton clickData={addExpense} btnID={`btnModalAdd`} width={"7em"} btnName="Add"/>
+                    </div>
+                    {/* <div className="addExpenseInfo" id="addExpenseInfo">Add multiple values at once by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025<div onClick={closeAddExpenseInfo}>✕</div></div> */}
+                </div>
+            </div>
+        </div>
+        <div className="modalOverlay" id="modalOverlayDelete">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalDelete">
+                    <h1>Delete Expense?</h1>
+                    <div className="deleteData">
+                        <p id="namePText"></p>
+                        <p id="pricePText"></p>
+                        <p id="datePText"></p>
+                    </div>
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayDelete", "modalDelete")} width={"7em"} btnID={"cancelBtnDelete"} btnName={"Cancel"} />
+                        <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName="Delete"/>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className="small_device">
+            <div className="small_device_card">
+                <div className="small_device_text">
+                    Add an Expense here after buying a bigger Display.
+                </div>
+            </div>
+        </div>
+        </>
+    )
+}
+
+export default CRUD
