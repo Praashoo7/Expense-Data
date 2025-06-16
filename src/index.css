@@ -2,15 +2,15 @@
     background-color: gray;
 }
 
-.dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar {
+.dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar {
   width: 4px;
   transition: .4s ease-in-out;
 }
-.dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track {
+.dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track {
   background-color: transparent;
   transition: .4s ease-in-out;
 }
-.dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb {
+.dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb {
   background-color: var(--color7); 
   transition: .4s ease-in-out;
   cursor: pointer;
@@ -441,27 +441,45 @@ input{
   flex-wrap: wrap;
 }
 
-.infoData{
+.infoData, .deleteAllData{
   padding: 1em;
   border: 1px solid var(--color7);
   height: 300px;
   overflow-y: scroll;
+}
+.deleteAllData{
+  width: 100%;
+  height: 200px;
+  background-color: var(--color9);
 }
 
 .total{
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   margin-top: 1em;
   color: var(--color4);
 }
-.addItemBtn{
-  width: 100%;
+.addItemBtn, .deleteAllBtn{
+  width: 8.5em;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 1em;
+}
+.bottomBar{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+}
+.bBtns{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 1em;
 }
 
 
@@ -475,7 +493,7 @@ input{
     --color5: black;
     --color6: #151515;
     --color7: #353535;
-    --color9: #454545;
+    --color9: #252525;
 }
 [data-theme="dark"] {
     --color1: #171717;
@@ -485,7 +503,7 @@ input{
     --color5: white;
     --color6: rgba(0, 0, 0, 0.1);
     --color7: #cacaca;
-    --color9: #bababa;
+    --color9: #dadada;
 }
 
 

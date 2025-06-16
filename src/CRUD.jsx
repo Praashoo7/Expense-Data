@@ -55,7 +55,7 @@ function CRUD(){
     }
 
     useEffect(() => {
-        if (itemData.length == 0  && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false) }
+        if (itemData.length == 0  && noDataVisibility == true) { setMessageOpacity("1"); setNoDataVisibility(false); }
         else { setMessageOpacity("0"); setNoDataVisibility(true) }
     }, [itemData])
 
@@ -134,6 +134,21 @@ function CRUD(){
                 document.getElementById("datePText").textContent = "Date : " + item.itemDate
             }
             })
+        } else if(modalName == "DeleteAll"){
+            let alldata =""
+            if(itemData.length > 0){
+                itemData.forEach((item) => {
+                alldata += `
+                        <p id="namePText">Name : ${item.itemName}</p>
+                        <p id="pricePText">Price : ${item.itemPrice}</p>
+                        <p id="datePText">Date : ${item.itemDate}</p>
+                        <div className="divider1" style="border: 1px solid var(--color7); width: 100%; display: block; margin: 0.5em 0 0.5em 0"></div>
+                    `
+                })
+            } else {
+                alldata += `<div className="noData" id="noData">No Expenses!</div>`
+            }
+            document.getElementById("deleteAllData").innerHTML = alldata
         }
     }
 
@@ -179,9 +194,19 @@ function CRUD(){
     function deleteExpense(){
         let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
         setItemData(itemData.filter((newData, index) => index != value))
-
         closeModal("modalOverlayDelete", "modalDelete")
     }
+
+
+    // DELETE-ALL-EXPENSE
+
+    function deleteAllExpense(){
+        setItemData([])
+        closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+    }
+
+
+    // ADD-BUTTON-DISABLE
 
     function addBtnCheck(){
         if(document.getElementById("addModalNameData").value == ""){
@@ -316,13 +341,6 @@ function CRUD(){
     }
 
 
-    // CLOSE-INFO
-
-    function closeAddExpenseInfo(){
-        document.getElementById("addExpenseInfo").style.display = "none"
-    }
-
-
     // SYMMETRY
 
     let topBarButtonsWidth1
@@ -366,9 +384,10 @@ function CRUD(){
         const addModal = document.getElementById("modalOverlayAdd");
         const deleteModal = document.getElementById("modalOverlayDelete");
         const infoModal = document.getElementById("modalOverlayInfo");
+        const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
 
         const modalVisible =
-            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex";
+            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex";;
 
         let focusScope = document;
         if (updateModal?.style.display === "flex") {
@@ -379,6 +398,8 @@ function CRUD(){
             focusScope = deleteModal;
         } else if (infoModal?.style.display === "flex") {
             focusScope = infoModal;
+        } else if (deleteAllModal?.style.display === "flex") {
+            focusScope = deleteAllModal;
         }
 
         const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
@@ -411,11 +432,16 @@ function CRUD(){
                 const button = document.getElementById("infoBtn");
                 if (button) button.click();
             }
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
+                event.preventDefault();
+                const button = document.getElementById("btnDeleteAllOpen");
+                if (button) button.click();
+            }
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
                 event.preventDefault();
                 const inputFocus = document.getElementById("searchInput");
-            if (inputFocus) inputFocus.focus();
-        }
+                if (inputFocus) inputFocus.focus();
+            }
         }
 
         if (event.key === "Enter" && !keyboardModeRef.current) {
@@ -427,6 +453,9 @@ function CRUD(){
             if (button) button.click();
             } else if (deleteModal?.style.display === "flex") {
             const button = document.getElementById("btnModalDelete");
+            if (button) button.click();
+            } else if (deleteAllModal?.style.display === "flex") {
+            const button = document.getElementById("btnModalDeleteAll");
             if (button) button.click();
             }
         }
@@ -485,6 +514,9 @@ function CRUD(){
             } else if (infoModal?.style.display === "flex") {
             const button = document.getElementById("cancelBtnInfo");
             if (button) button.click();
+            } else if (deleteAllModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnDeleteAll");
+            if (button) button.click();
             }
         }
         };
@@ -534,11 +566,18 @@ function CRUD(){
                     ))}
                 </div>
             </div>
-            <div className="total">
-                <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
-            </div>
-            <div className="addItemBtn">
-                <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"3em"} btnName={"Add Expense"} />
+            <div className="bottomBar">
+                <div className="total">
+                    <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
+                </div>
+                <div className="bBtns">
+                    <div className="deleteAllBtn">
+                        <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"3em"} btnName={"Delete All"} />
+                    </div>
+                    <div className="addItemBtn">
+                        <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"3em"} btnName={"Add Expense"} />
+                    </div>
+                </div>
             </div>
         </div>
         <div className="modalOverlay" id="modalOverlayUpdate">
@@ -574,7 +613,6 @@ function CRUD(){
                         <NButton clickData={() => closeModal("modalOverlayAdd", "modalAdd")} width={"7em"} btnID={"cancelBtnAdd"} btnName={"Cancel"} />
                         <NButton clickData={addExpense} btnID={`btnModalAdd`} width={"7em"} btnName="Add"/>
                     </div>
-                    {/* <div className="addExpenseInfo" id="addExpenseInfo">Add multiple values at once by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025<div onClick={closeAddExpenseInfo}>✕</div></div> */}
                 </div>
             </div>
         </div>
@@ -598,6 +636,22 @@ function CRUD(){
                 </div>
             </div>
         </div>
+        <div className="modalOverlay" id="modalOverlayDeleteAll">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalDeleteAll">
+                    <h1>Delete All?</h1>
+                    <div className="deleteAllData" id="deleteAllData"></div>
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayDeleteAll", "modalDeleteAll")} width={"7em"} btnID={"cancelBtnDeleteAll"} btnName={"Cancel"} />
+                        <NButton clickData={deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div className="modalOverlay" id="modalOverlayInfo">
             <div className="menuWrapper" id="menuWrapper">
                 <div className="corner1" id="corner1"></div>
@@ -611,10 +665,11 @@ function CRUD(){
                         <div style={{ padding: "1em", backgroundColor: "var(--color7)", display: "flex", gap: "0.5em", flexDirection: "column" }}>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
                         </div>
                         <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color9)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
