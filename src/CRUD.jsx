@@ -571,10 +571,10 @@ function CRUD(){
                 </div>
                 <div className="bBtns">
                     <div className="deleteAllBtn">
-                        <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"3em"} btnName={"Delete All"} />
+                        <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"2.5em"} btnName={"Delete All"} />
                     </div>
                     <div className="addItemBtn">
-                        <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"3em"} btnName={"Add Expense"} />
+                        <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"2.5em"} btnName={"Add Expense"} />
                     </div>
                 </div>
             </div>
