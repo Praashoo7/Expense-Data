@@ -56,7 +56,7 @@ function CRUD(){
     }
 
     useEffect(() => {
-        if (itemData.length == 0  && noDataVisibility == false) { setMessageOpacity("1"); setNoDataVisibility(true); }
+        if (itemData.length == 0  && noDataVisibility == false) { setMessageOpacity("1"); }
         else { setMessageOpacity("0"); setNoDataVisibility(false) }
     }, [itemData])
 
