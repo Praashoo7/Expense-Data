@@ -16,7 +16,6 @@ function CRUD(){
     const [searchData, setSearchData] = useState(originalData)
     const [searching, setSearching] = useState(false)
     const [messageOpacity, setMessageOpacity] = useState("0");
-    const [noDataVisibility, setNoDataVisibility] = useState(false)
 
 
     // SEARCH
@@ -31,8 +30,9 @@ function CRUD(){
 
     const searchedData = (value) => {
 
-        if(!value.trim()){
+        if(!value.trim() && itemData.length != 0){
             setSearchData(originalData)
+            setMessageOpacity("0")
             return
         }
 
@@ -48,16 +48,15 @@ function CRUD(){
             }
         })
 
-        if (filteredData.length == 0 && originalData.length != 0) { setMessageOpacity("1"); setNoDataVisibility(true) }
-        else if(filteredData.length == 0 && originalData.length == 0) { setMessageOpacity("1"); setNoDataVisibility(true) }
-        else { setMessageOpacity("0"); setNoDataVisibility(false) }
+        if (filteredData.length == 0) { setMessageOpacity("1"); }
+        else { setMessageOpacity("0"); }
 
         setSearchData(filteredData)
     }
 
     useEffect(() => {
-        if (itemData.length == 0  && noDataVisibility == false) { setMessageOpacity("1"); }
-        else { setMessageOpacity("0"); setNoDataVisibility(false) }
+        if (itemData.length == 0) { setMessageOpacity("1"); }
+        else { setMessageOpacity("0"); }
     }, [itemData])
 
 
@@ -203,6 +202,8 @@ function CRUD(){
 
     function deleteAllExpense(){
         setItemData([])
+        setOriginalData([])
+        setSearchData([])
         closeModal("modalOverlayDeleteAll", "modalDeleteAll")
     }
 
@@ -436,9 +437,9 @@ function CRUD(){
                 const button = document.getElementById("btnDeleteAllOpen");
                 if (button) button.click();
             }
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "f") {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
                 event.preventDefault();
-                const inputFocus = document.getElementById("searchInput");
+                const inputFocus = document.getElementById("findInput");
                 if (inputFocus) inputFocus.focus();
             }
         }
@@ -536,7 +537,7 @@ function CRUD(){
                     </div>
                 </div>
                 <div className="search">
-                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="searchInput" onChange={(e) => searchedData(e.target.value)}/>
+                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="findInput" onChange={(e) => searchedData(e.target.value)}/>
                     <div className="searchBtns">
                         <NButton btnID={"findBtn"} clickData={searchBy} width={topBarButtonsWidth3} btnName={searchName}/>
                     </div>
@@ -667,7 +668,7 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + f</span> : Find</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + k</span> : Find</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
                         </div>
