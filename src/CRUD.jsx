@@ -459,7 +459,7 @@ function CRUD(){
             }
         }
 
-        if (["ArrowDown", "ArrowRight"].includes(event.key)) {
+        if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
             event.preventDefault();
             setKeyboardMode(true);
             const focusable = getFocusable();
@@ -468,7 +468,7 @@ function CRUD(){
             focusable[nextIndex]?.focus();
         }
 
-        if (["ArrowUp", "ArrowLeft"].includes(event.key)) {
+        if (["ArrowUp"].includes(event.key) || (["ArrowLeft"].includes(event.key) && (!isTyping))) {
             event.preventDefault();
             setKeyboardMode(true);
             const focusable = getFocusable();
