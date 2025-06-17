@@ -26,6 +26,7 @@
   margin: 2em;
   z-index: 1;
   transition: all 0.1s ease-in-out;
+  padding-bottom: 2em;
 }
 
 .main{
@@ -162,7 +163,6 @@ input{
   color: var(--color4);
   padding: 2em 2.5em 2.5em 2.5em;
   margin: 1em;
-  transform: translateY(-2em);
   opacity: 0;
 }
 .menuWrapper{
@@ -182,28 +182,28 @@ input{
   opacity: 0;
 }
 .corner1 {
-  margin: -1.5em 0 0 0.5em;
+  margin: 0.5em 0 0 0.5em;
   border-top: 2px solid var(--color4);
   border-left: 2px solid var(--color4);
   transform: rotateZ(180deg);
   animation: 0.35s openCorner1 ease forwards;
 }
 .corner2 {
-  margin: -1.5em 0.5em 0 0;
+  margin: 0.5em 0.5em 0 0;
   border-top: 2px solid var(--color4);
   border-right: 2px solid var(--color4);
   transform: rotateZ(180deg);
   animation: 0.35s openCorner2 ease forwards;
 }
 .corner3 {
-  margin: 0 0 2.5em 0.5em;
+  margin: 0 0 0.5em 0.5em;
   border-bottom: 2px solid var(--color4);
   border-left: 2px solid var(--color4);
   transform: rotateZ(180deg);
   animation: 0.35s openCorner3 ease forwards;
 }
 .corner4 {
-  margin: 0 0.5em 2.5em 0;
+  margin: 0 0.5em 0.5em 0;
   border-bottom: 2px solid var(--color4);
   border-right: 2px solid var(--color4);
   transform: rotateZ(180deg);
