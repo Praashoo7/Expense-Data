@@ -67,7 +67,7 @@ input{
   height: 100%;
   padding: 0.5em 0.5em 0.5em 0.85em;
   font-family: JetBrains Mono;
-  background-color: var(--color2);
+  background-color: var(--color8);
   color: var(--color4);
   outline: none;
   border: none;
@@ -494,6 +494,7 @@ input{
     --color6: #151515;
     --color7: #353535;
     --color9: #252525;
+    --color8: #111111;
     --color10: #202020;
 }
 [data-theme="dark"] {
@@ -505,6 +506,7 @@ input{
     --color6: rgba(0, 0, 0, 0.1);
     --color7: #cacaca;
     --color9: #dadada;
+    --color8: #e0e0e0;
     --color10: #e0e0e0;
 }
 
