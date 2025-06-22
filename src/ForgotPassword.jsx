@@ -199,7 +199,7 @@ function ForgotPassword() {
         }
 
         const actionCodeSettings = {
-          url: `${window.location.origin}/ResetPassword`,
+          url: `${window.location.origin}/#/ResetPassword`,
           handleCodeInApp: true,
         };
 

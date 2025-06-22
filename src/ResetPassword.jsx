@@ -163,7 +163,6 @@ function ResetPassword() {
     const [newPassword, setNewPassword] = useState("");
     const [message, setMessage] = useState("");
     const [error, setError] = useState("");
-    console.log(oobCode)
 
     const handleResetPassword = async (e) => {
       e.preventDefault();
