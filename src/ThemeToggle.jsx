@@ -41,7 +41,7 @@ function ThemeToggle(props) {
                 }
             `}</style>
 
-            <NButton className="theme-toggle-btn" btnID={"themeBtn"} clickData={toggleTheme} width={props.btnWidth} btnName={theme === "dark" ? "Dark" : "Light"} />
+            <NButton className="theme-toggle-btn" displayMode={props.displayMode} btnID={"themeBtn"} clickData={toggleTheme} width={props.btnWidth} btnName={theme === "dark" ? "Dark" : "Light"} />
         </>
     );
 }

@@ -115,7 +115,7 @@ function NButton(props){
                 border-right: 2px solid var(--color4);
             }
         `}</style>
-        <div tabIndex={0} className="okBtn" id={props.btnID} onClick={props.clickData} style={{ width: props.width, height: props.height }}>
+        <div tabIndex={0} className="okBtn" id={props.btnID} onClick={props.clickData} style={{ width: props.width, height: props.height, display:props.displayMode }}>
             <span>{props.btnName}</span>
             <div className="cornerBtn11"></div>
             <div className="cornerBtn12"></div>

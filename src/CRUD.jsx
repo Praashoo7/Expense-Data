@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from "react"
 import NButton from "./NButton"
 import ThemeToggle from "./ThemeToggle";
+import { db } from "./Firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { auth } from "./Firebase";
+import { signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
 
 function CRUD(){
 
     let [originalData , setOriginalData] = useState([]);
 
-    originalData = JSON.parse(localStorage.getItem("Expenses")) || []
-
-    const[itemData, setItemData] = useState(originalData)
+    const[itemData, setItemData] = useState([])
     const [sortCount, setSortCount] = useState(0)
     const [sortName, setSortName] = useState("Sort By")
     const [searchCount, setSearchCount] = useState(2)
@@ -16,6 +19,50 @@ function CRUD(){
     const [searchData, setSearchData] = useState(originalData)
     const [searching, setSearching] = useState(false)
     const [messageOpacity, setMessageOpacity] = useState("0");
+    const [loaded, setLoaded] = useState(false);
+
+    const uid = localStorage.getItem("uid"); // Now storing UID instead of username
+
+    useEffect(() => {
+        if (!uid) return;
+
+        document.getElementById("noData").innerHTML = `Loading your Data<div class="text-loader"></div>`;
+
+        const fetchData = async () => {
+            const userRef = doc(db, "users", uid);
+            const userDoc = await getDoc(userRef);
+
+            if (userDoc.exists()) {
+                const data = userDoc.data().data || [];
+
+                document.getElementById("noData").innerHTML = "Data Loaded.";
+
+                setTimeout(() => {
+                    setOriginalData(data);
+                    setItemData(data);
+                }, 500);
+
+                setTimeout(() => {
+                    document.getElementById("noData").innerHTML = "No Expenses!";
+                }, 700);
+            }
+
+            setLoaded(true);
+        };
+
+        fetchData();
+    }, [uid]);
+
+    useEffect(() => {
+        if (!uid || !loaded || searching) return;
+
+        const saveData = async () => {
+            const userRef = doc(db, "users", uid);
+            await setDoc(userRef, { data: itemData }, { merge: true });
+        };
+
+        saveData();
+    }, [itemData, searching, uid, loaded]);
 
 
     // SEARCH
@@ -362,13 +409,6 @@ function CRUD(){
     getScreenWidth()
 
 
-    // SAVE
-
-    if(searching == false){
-        localStorage.setItem("Expenses", JSON.stringify(itemData))
-    }
-
-
     // KEYBOARD
 
     const [keyboardMode, setKeyboardMode] = useState(false);
@@ -385,9 +425,10 @@ function CRUD(){
         const deleteModal = document.getElementById("modalOverlayDelete");
         const infoModal = document.getElementById("modalOverlayInfo");
         const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
+        const logoutModal = document.getElementById("modalOverlayLogout");
 
         const modalVisible =
-            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex";;
+            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
 
         let focusScope = document;
         if (updateModal?.style.display === "flex") {
@@ -400,6 +441,8 @@ function CRUD(){
             focusScope = infoModal;
         } else if (deleteAllModal?.style.display === "flex") {
             focusScope = deleteAllModal;
+        } else if (logoutModal?.style.display === "flex") {
+            focusScope = logoutModal;
         }
 
         const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
@@ -432,6 +475,10 @@ function CRUD(){
                 const button = document.getElementById("infoBtn");
                 if (button) button.click();
             }
+            if (event.key.toLowerCase() === "l") {
+                const button = document.getElementById("btnLogoutOpen");
+                if (button) button.click();
+            }
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
                 event.preventDefault();
                 const button = document.getElementById("btnDeleteAllOpen");
@@ -456,6 +503,9 @@ function CRUD(){
             if (button) button.click();
             } else if (deleteAllModal?.style.display === "flex") {
             const button = document.getElementById("btnModalDeleteAll");
+            if (button) button.click();
+            } else if (logoutModal?.style.display === "flex") {
+            const button = document.getElementById("btnModalLogout");
             if (button) button.click();
             }
         }
@@ -517,13 +567,26 @@ function CRUD(){
             } else if (deleteAllModal?.style.display === "flex") {
             const button = document.getElementById("cancelBtnDeleteAll");
             if (button) button.click();
+            } else if (logoutModal?.style.display === "flex") {
+            const button = document.getElementById("cancelBtnLogout");
+            if (button) button.click();
             }
         }
         };
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-    }, []);
+        }, []);
+
+    const navigate = useNavigate();
+    const handleLogout = async () => {
+        await signOut(auth);
+        localStorage.removeItem("loggedInUsername");
+        closeModal("modalOverlayLogout", "modalLogout");
+        setTimeout(() => {
+            navigate("/Expense-Data/Login");
+        }, 300);
+    };
 
     return(
         <>
@@ -533,7 +596,7 @@ function CRUD(){
                     <h1>Expense Data</h1>
                     <div className="topBarBtns">
                         <NButton btnID={"infoBtn"} clickData={() => openModal(null, "Info")} width={topBarButtonsWidth1} btnName={"i"}/>
-                        <ThemeToggle btnWidth={topBarButtonsWidth2} />
+                        <ThemeToggle btnWidth={topBarButtonsWidth2} displayMode={"flex"} />
                     </div>
                 </div>
                 <div className="search">
@@ -571,6 +634,9 @@ function CRUD(){
                     <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
                 </div>
                 <div className="bBtns">
+                    <div className="logoutBtn">
+                        <NButton btnID={`btnLogoutOpen`} clickData={() => openModal(null, "Logout")} width={"100%"} height={"2.5em"} btnName={"Logout"} />
+                    </div>
                     <div className="deleteAllBtn">
                         <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"2.5em"} btnName={"Delete All"} />
                     </div>
@@ -668,6 +734,7 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>l</span> : Logout</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + k</span> : Find</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
@@ -678,6 +745,22 @@ function CRUD(){
                     </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayInfo", "modalInfo")} width={"7em"} btnID={"cancelBtnInfo"} btnName={"Close"} />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div className="modalOverlay" id="modalOverlayLogout">
+            <div className="menuWrapper" id="menuWrapper">
+                <div className="corner1" id="corner1"></div>
+                <div className="corner2" id="corner2"></div>
+                <div className="corner3" id="corner3"></div>
+                <div className="corner4" id="corner4"></div>
+                <div className="modal" id="modalLogout">
+                    <h1>Logout?</h1>
+                    <div className="logoutData" id="logoutData"></div>
+                    <div className="modalBtns">
+                        <NButton clickData={() => closeModal("modalOverlayLogout", "modalLogout")} width={"7em"} btnID={"cancelBtnLogout"} btnName={"Cancel"} />
+                        <NButton clickData={handleLogout} btnID={`btnModalLogout`} width={"7em"} btnName="Logout"/>
                     </div>
                 </div>
             </div>
