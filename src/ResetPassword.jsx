@@ -182,7 +182,7 @@ function ResetPassword() {
         setMessage(`Password has been reset successfully. Redirecting to Login Page.`);
         closeModal()
         setTimeout(() => {
-          navigate("/Expense-Data/Login")
+          navigate("/Login")
         }, 5000);
       } catch (err) {
         closeModal()

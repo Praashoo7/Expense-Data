@@ -584,7 +584,7 @@ function CRUD(){
         localStorage.removeItem("loggedInUsername");
         closeModal("modalOverlayLogout", "modalLogout");
         setTimeout(() => {
-            navigate("/Expense-Data/Login");
+            navigate("/Login");
         }, 300);
     };
 

@@ -212,7 +212,7 @@ function SignUp() {
 
             document.getElementById("authText").textContent = "Signed Up";
             setTimeout(() => closeModal(), 300);
-            setTimeout(() => navigate("/Expense-Data/Login"), 650);
+            setTimeout(() => navigate("/Login"), 650);
         } catch (err) {
             setError(err.message);
             closeModal();
@@ -220,13 +220,13 @@ function SignUp() {
     };
 
     const handleLogin = () => {
-        navigate("/Expense-Data/Login")
+        navigate("/Login")
     }
 
     useEffect(() => {
     const username = localStorage.getItem("loggedInUsername");
     if (username) {
-        navigate(`/Expense-Data/${username}`);
+        navigate(`/${username}`);
     }
     }, []);
 

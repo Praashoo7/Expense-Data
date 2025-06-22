@@ -25,40 +25,36 @@ function App() {
     <Router>
       <Routes>
         <Route
-          path="/Expense-Data/:username"
+          path="/:username"
           element={<ProtectedRoute />}
         />
         <Route
-          path="/Expense-Data/Login"
+          path="/Login"
           element={
             !isLoggedIn
               ? <Login />
-              : <Navigate to={`/Expense-Data/${localStorage.getItem("loggedInUsername")}`} />
+              : <Navigate to={`/${localStorage.getItem("loggedInUsername")}`} />
           }
         />
         <Route
-          path="/Expense-Data/SignUp"
-          element={!isLoggedIn ? <SignUp /> : <Navigate to={`/Expense-Data/${localStorage.getItem("loggedInUsername")}`} />}
+          path="/SignUp"
+          element={!isLoggedIn ? <SignUp /> : <Navigate to={`/${localStorage.getItem("loggedInUsername")}`} />}
         />
         <Route
-          path="/Expense-Data/ForgotPassword"
+          path="/ForgotPassword"
           element={<ForgotPassword />}
         />
         <Route
-          path="/Expense-Data/ResetPassword"
+          path="/ResetPassword"
           element={<ResetPassword />}
         />
         <Route
-          path="/Expense-Data/NotFound"
+          path="/NotFound"
           element={<NotFound />}
         />
         <Route
-          path="/Expense-Data"
-          element={<Navigate to="/Expense-Data/Login" replace />}
-        />
-        <Route
           path="*"
-          element={<Navigate to={isLoggedIn ? `/Expense-Data/${localStorage.getItem("loggedInUsername")}` : "/Expense-Data/NotFound"} />}
+          element={<Navigate to={isLoggedIn ? `/${localStorage.getItem("loggedInUsername")}` : "/NotFound"} />}
         />
       </Routes>
     </Router>

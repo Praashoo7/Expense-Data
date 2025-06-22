@@ -206,7 +206,7 @@ function Login() {
             }, 300);
 
             setTimeout(() => {
-            navigate(`/Expense-Data/${loggedInUsername}`);
+            navigate(`/${loggedInUsername}`);
             }, 650);
         } catch (err) {
             console.error(err);
@@ -218,15 +218,15 @@ function Login() {
     useEffect(() => {
     const username = localStorage.getItem("loggedInUsername");
     if (username) {
-        navigate(`/Expense-Data/${username}`);
+        navigate(`/${username}`);
     }
     }, []);
 
     const handleSignUp = () => {
-        navigate("/Expense-Data/SignUp")
+        navigate("/SignUp")
     }
     const handleForgotPassword = () =>{
-        navigate("/Expense-Data/ForgotPassword")
+        navigate("/ForgotPassword")
     }
 
   return (

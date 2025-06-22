@@ -94,7 +94,7 @@ function NotFound() {
 
     const navigate = useNavigate()
     const handleLogin = () => {
-        navigate("/Expense-Data/Login")
+        navigate("/Login")
     }
 
   return (

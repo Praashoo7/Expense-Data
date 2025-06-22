@@ -217,7 +217,7 @@ function ForgotPassword() {
 
 
   const handleBackToLogin = () => {
-    navigate("/Expense-Data/Login")
+    navigate("/Login")
   }
 
   return (

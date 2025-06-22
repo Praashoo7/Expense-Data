@@ -6,7 +6,7 @@ function ProtectedRoute() {
   const loggedInUsername = localStorage.getItem("loggedInUsername");
 
   if (username !== loggedInUsername) {
-    return <Navigate to="/Expense-Data/Login" />;
+    return <Navigate to="/Login" />;
   }
 
   return <CRUD />;
