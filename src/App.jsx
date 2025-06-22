@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import ProtectedRoute from "./ProtectedRoute.jsx";
 import Login from "./Login.jsx";
 import SignUp from "./SignUp.jsx";
@@ -22,7 +22,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
+    <HashRouter basename="/">
       <Routes>
         <Route
           path="/Expense-Data/:username"
@@ -61,7 +61,7 @@ function App() {
           element={<Navigate to={isLoggedIn ? `/Expense-Data/${localStorage.getItem("loggedInUsername")}` : "/Expense-Data/NotFound"} />}
         />
       </Routes>
-    </Router>
+    </HashRouter>
   );
 }
 
