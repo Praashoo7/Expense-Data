@@ -170,7 +170,12 @@ function ResetPassword() {
       setMessage("");
       if (!newPassword) return setError("Please enter a new password");
 
-      const oobCode = searchParams.get('oobCode');
+      const oobCode = (() => {
+        const hashIndex = window.location.href.indexOf("#");
+        const queryPart = window.location.href.substring(0, hashIndex);
+        const params = new URLSearchParams(queryPart.split("?")[1]);
+        return params.get("oobCode");
+      })();
 
       try {
         const auth = getAuth();
