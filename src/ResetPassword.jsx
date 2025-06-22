@@ -187,7 +187,7 @@ function ResetPassword() {
         setMessage(`Password has been reset successfully. Redirecting to Login Page.`);
         closeModal()
         setTimeout(() => {
-          navigate("/Login")
+          window.location.replace("https://praashoo7.github.io/Expense-Data/#/Login");
         }, 5000);
       } catch (err) {
         closeModal()
