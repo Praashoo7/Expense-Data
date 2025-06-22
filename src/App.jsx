@@ -53,6 +53,10 @@ function App() {
           element={<NotFound />}
         />
         <Route
+          path="/"
+          element={<Navigate to="/Expense-Data/Login" replace />}
+        />
+        <Route
           path="*"
           element={<Navigate to={isLoggedIn ? `/${localStorage.getItem("loggedInUsername")}` : "/NotFound"} />}
         />
