@@ -53,7 +53,7 @@ function App() {
           element={<NotFound />}
         />
         <Route
-          path="/"
+          path="/Expense-Data/"
           element={<Navigate to="/Expense-Data/Login" replace />}
         />
         <Route
