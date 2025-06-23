@@ -554,6 +554,7 @@ input{
   background-color: #171717;
   color: #e4e4e4;
   height: 2.5em;
+  pointer-events: none;
 }
 .bottomBar{
   width: 100%;

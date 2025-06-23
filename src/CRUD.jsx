@@ -42,6 +42,8 @@ function CRUD(){
                     setItemData(data);
                 }, 500);
 
+                document.getElementById("downloadImgBtn").style.pointerEvents = "auto"
+
                 setTimeout(() => {
                     document.getElementById("noData").innerHTML = "No Expenses!";
                 }, 700);
