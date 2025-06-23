@@ -556,6 +556,9 @@ input{
   height: 2.5em;
   pointer-events: none;
 }
+.downloadImgBtn .text-loader{
+  color: #e4e4e4;
+}
 .bottomBar{
   width: 100%;
   display: flex;
