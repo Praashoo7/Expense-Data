@@ -558,6 +558,10 @@ input{
 }
 .downloadImgBtn .text-loader{
   color: #e4e4e4;
+  margin: 0;
+}
+.downloadImgBtn .text-loader::after{
+  margin: 0;
 }
 .bottomBar{
   width: 100%;
@@ -740,9 +744,11 @@ input{
     scale: 0.9;
   }
   .text-loader{
-    margin: 0;
     margin-top: 0.5em;
     margin-right: 0.5em;
+  }
+  .downloadImgBtn .text-loader{
+    margin: 0;
   }
 }
 
