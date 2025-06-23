@@ -93,11 +93,13 @@ input{
   margin-top: 3em;
 }
 
-.itemData{
+.itemData, .itemDataPDF{
+  width: 50%;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: start;
   gap: 1em;
+  overflow: hidden;
 }
 .dataItems{
   position: relative;
@@ -115,6 +117,33 @@ input{
   overflow-x: hidden;
   color: var(--color4);
 }
+.pdfContent{
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 800px;
+  padding: 40px;
+  font-family: JetBrains Mono;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-direction: column;
+  gap: 1em;
+  margin: 1em;
+  background-color: var(--color5);
+  border: 1px solid var(--color6);
+  color: var(--color4);
+  height: max-content;
+  z-index: 99;
+}
+.itemNamePDF{
+  max-width: 400px;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  display: block; 
+}
 .divider{
   display: none;
   border: 1px solid var(--color6);
@@ -130,24 +159,30 @@ input{
   color: var(--color4);
   margin: 1em;
 }
-.item{
+.item, .itemPDF{
   width: 100%;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: space-between;
   gap: 1em;
-  height: 2.5em;
 }
 
-.dataBtns{
-  width: max-content;
+.dataBtns, .dataBtnsPDF{
+  width: 50%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: end;
   height: 100%;
   gap: 1em;
 }
-.itemDate{
+.itemDataPDF{
+  width: 80%;
+}
+.dataBtnsPDF{
+  width: 20%;
+  overflow: hidden;
+}
+.itemDate, .itemDatePDF{
   opacity: 0.5;
 }
 
@@ -469,6 +504,9 @@ input{
   align-items: center;
   justify-content: center;
 }
+#text-loader-img{
+  display: none;
+}
 .text-loader{
   color: var(--color4);
   opacity: 0.75;
@@ -490,7 +528,7 @@ input{
   66%  { content: "\\"; }
 }
 
-.total{
+.total, .totalPDF{
   width: 100%;
   display: flex;
   align-items: center;
@@ -498,12 +536,24 @@ input{
   margin-top: 1em;
   color: var(--color4);
 }
-.addItemBtn, .deleteAllBtn, .logoutBtn{
+.totalPDF{
+  justify-content: center;
+  background-color: #171717;
+  color: #e4e4e4;
+  padding: 1em 0 1em 0;
+  margin-top: 0;
+}
+.addItemBtn, .deleteAllBtn, .logoutBtn, .downloadImgBtn{
   width: 8.5em;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 1em;
+}
+.downloadImgBtn{
+  background-color: #171717;
+  color: #e4e4e4;
+  height: 2.5em;
 }
 .bottomBar{
   width: 100%;
@@ -607,6 +657,26 @@ input{
   .divider{
     display: block;
   }
+  .dataBtns, .itemData{
+    height: max-content;
+  }
+  .dataBtns{
+    width: max-content;
+  }
+  .bottomBar{
+    margin-top: 1em;
+    flex-direction: column;
+  }
+  .total, .bBtns{
+    align-items: center;
+    justify-content: center;
+  }
+  .total{
+    justify-content: center;
+  }
+  .deleteAllBtn, .addItemBtn, .logoutBtn, .downloadImgBtn{
+    width: 100%;
+  }
 }
 @media screen and (max-width: 700px) {
   .bottomBar, .bBtns{
@@ -615,9 +685,6 @@ input{
   }
   .bBtns{
     flex-direction: column-reverse;
-  }
-  .deleteAllBtn, .addItemBtn, .logoutBtn{
-    width: 100%;
   }
   .total{
     justify-content: center;
@@ -634,6 +701,7 @@ input{
     flex-direction: column;
     align-items: start;
     justify-content: start;
+    height: max-content;
   }
   .topBar{
     height: 100%;
@@ -647,6 +715,9 @@ input{
   .loginBtns{
     flex-direction: column;
   }
+  .itemName{
+    width: 100%;
+  }
 }
 @media screen and (max-width: 450px) {
   .topBarBtns{
@@ -656,9 +727,18 @@ input{
     margin-bottom: 1em;
   }
 }
-@media screen and (max-width: 350px) {
+@media screen and (max-width: 370px) {
   .authM{
     max-width: 250px;
+  }
+  .authText{
+    flex-direction: column;
+    scale: 0.9;
+  }
+  .text-loader{
+    margin: 0;
+    margin-top: 0.5em;
+    margin-right: 0.5em;
   }
 }
 
@@ -684,7 +764,7 @@ input{
 }
   
 @media only screen and (max-width: 279px) {
-  .wrapper, .modalOverlay, #wrapperLogin{
+  .wrapper, .modalOverlay, #wrapperLogin, .pdfContent{
       display: none;
   }
   body{

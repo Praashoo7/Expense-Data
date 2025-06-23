@@ -459,6 +459,10 @@ function CRUD(){
                 const button = document.getElementById("btnAddOpen");
                 if (button) button.click();
             }
+            if (event.key.toLowerCase() === "p") {
+                const button = document.getElementById("btnDownloadImg");
+                if (button) button.click();
+            }
             if (event.key.toLowerCase() === "f") {
                 const button = document.getElementById("findBtn");
                 if (button) button.click();
@@ -588,6 +592,50 @@ function CRUD(){
         }, 300);
     };
 
+    const downloadImage = async () => {
+    const element = document.getElementById('hidden-img-content');
+
+    document.getElementById("downloadImgBtn").style.pointerEvents = "none"
+    document.getElementById("imgBtn").style.display = "none"
+    document.getElementById("text-loader-img").style.display = "block"
+
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    if (!window.html2canvas) {
+        await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+        });
+    }
+
+    try {
+        const canvas = await window.html2canvas(element, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 2
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+
+        const link = document.createElement('a');
+        link.href = imgData;
+        link.download = 'Expense-Data.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        document.getElementById("downloadImgBtn").style.pointerEvents = "auto"
+        document.getElementById("text-loader-img").style.display = "none"
+        document.getElementById("imgBtn").style.display = "block" 
+    } catch (error) {
+        console.error('Error saving image:', error);
+        alert('Failed to save image. Please try again.');
+    }
+    };
+
+
     return(
         <>
         <div className="wrapper" id="wrapper">
@@ -614,8 +662,8 @@ function CRUD(){
                     <React.Fragment key={index}>
                     <div className="item">
                         <div className="itemData">
-                            <span className="itemIndex">[ {index} ]</span>
-                            <span className="itemName">{item.itemName}</span>
+                            <span className="itemIndex" style={{ textWrap: "nowrap" }}>[ {index} ]</span>
+                            <span className="itemName" style={{ maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.itemName}</span>
                             <span style={{ fontWeight: "bold" }} className="itemExpense">- {item.itemPrice}</span>
                         </div>
                         <div className="dataBtns">
@@ -642,6 +690,12 @@ function CRUD(){
                     </div>
                     <div className="addItemBtn">
                         <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"2.5em"} btnName={"Add Expense"} />
+                    </div>
+                    <div className="downloadImgBtn" id="downloadImgBtn">
+                        <div id="imgBtn" style={{ width: "100%" }}>
+                        <NButton btnID={`btnDownloadImg`} clickData={downloadImage} width={"100%"} height={"2.5em"} btnName={"Image"} />
+                        </div>
+                        <div className="text-loader" id="text-loader-img"></div>
                     </div>
                 </div>
             </div>
@@ -770,6 +824,25 @@ function CRUD(){
                 <div className="small_device_text">
                     Add an Expense here after buying a bigger Display.
                 </div>
+            </div>
+        </div>
+        <div className="pdfContent" id="hidden-img-content">
+            {(itemData).map((item, index) => (
+                <React.Fragment key={index}>
+                    <div className="itemPDF">
+                        <div className="itemDataPDF">
+                            <span className="itemIndexPDF" style={{ textWrap: "noWrap" }}>[ {index} ]</span>
+                            <div className="itemNamePDF">{item.itemName}</div>
+                            <span style={{ fontWeight: "bold" }} className="itemExpensePDF">- {item.itemPrice}</span>
+                        </div>
+                        <div className="dataBtnsPDF">
+                            <span className="itemDatePDF">{item.itemDate}</span>
+                        </div>
+                    </div>
+                </React.Fragment>
+            ))}
+            <div className="totalPDF">
+                <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
             </div>
         </div>
         </>
