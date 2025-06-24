@@ -28,7 +28,7 @@ npm start
 
 ## Credits
 
-JetBrains Font from [Google Fonts]([https://unsplash.com/](https://fonts.google.com/specimen/JetBrains+Mono))
+JetBrains Font from [Google Fonts](https://fonts.google.com/specimen/JetBrains+Mono)
 
 ## License
 
