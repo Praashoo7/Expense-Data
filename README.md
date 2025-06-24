@@ -1,6 +1,6 @@
 # [Expense-Data](https://praashoo7.github.io/Expense-Data/)
 
-CRUD application built using React+Vite and with complete Keyboard navigation to manage the Expense data.<br>
+CRUD application built using React+Vite with added Authentication and complete Keyboard navigation to manage the Expense data.<br>
 
 ![Readme Image](public/ReadMe-Images/ReadMe-Image3.png)
 
