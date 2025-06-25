@@ -557,6 +557,7 @@ input{
   pointer-events: none;
 }
 .downloadImgBtn .text-loader{
+  opacity: 1;
   color: #e4e4e4;
   margin: 0;
 }
