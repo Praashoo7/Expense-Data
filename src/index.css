@@ -71,7 +71,7 @@
   gap: 1em;
   height: 2.5em;
 }
-input{
+input, textarea{
   width: 100%;
   height: 100%;
   padding: 0.5em 0.5em 0.5em 0.85em;
@@ -80,6 +80,11 @@ input{
   color: var(--color4);
   outline: none;
   border: none;
+}
+textarea{
+  resize: none;
+  min-width: 100%;
+  height: 80px;
 }
 .loginInput input, .resetData input{
   background-color: var(--color8);
@@ -91,6 +96,7 @@ input{
   align-items: center;
   justify-content: end;
   margin-top: 3em;
+  gap: 1em;
 }
 
 .itemData, .itemDataPDF{
@@ -100,6 +106,11 @@ input{
   justify-content: start;
   gap: 1em;
   overflow: hidden;
+}
+.moveData{
+  width: 100%;
+  overflow: auto;
+  flex-wrap: wrap;
 }
 .dataItems{
   position: relative;
@@ -116,6 +127,13 @@ input{
   overflow-y: scroll;
   overflow-x: hidden;
   color: var(--color4);
+}
+.moveItems{
+  border: 1px solid var(--color7);
+}
+.item{
+  z-index: 2;
+  user-select: none;
 }
 .pdfContent{
   position: absolute;
@@ -149,6 +167,14 @@ input{
   border: 1px solid var(--color6);
   width: 100%;
 }
+.divider1{
+  border: 1px solid var(--color7);
+  margin: 1em 0 1em 0;
+  width: 100%;
+}
+.selectableItem{
+  cursor: pointer;
+}
 .noData{
   position: absolute;
   width: 100%;
@@ -158,6 +184,7 @@ input{
   justify-content: center;
   color: var(--color4);
   margin: 1em;
+  z-index: 1;
 }
 .item, .itemPDF{
   width: 100%;

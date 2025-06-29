@@ -20,8 +20,9 @@ function CRUD(){
     const [searching, setSearching] = useState(false)
     const [messageOpacity, setMessageOpacity] = useState("0");
     const [loaded, setLoaded] = useState(false);
+    const [deleteSelected, setDeleteSelected] = useState(false)
 
-    const uid = localStorage.getItem("uid"); // Now storing UID instead of username
+    const uid = localStorage.getItem("uid");
 
     useEffect(() => {
         if (!uid) return;
@@ -184,20 +185,13 @@ function CRUD(){
             }
             })
         } else if(modalName == "DeleteAll"){
-            let alldata =""
-            if(itemData.length > 0){
-                itemData.forEach((item) => {
-                alldata += `
-                        <p id="namePText">Name : ${item.itemName}</p>
-                        <p id="pricePText">Price : ${item.itemPrice}</p>
-                        <p id="datePText">Date : ${item.itemDate}</p>
-                        <div className="divider1" style="border: 1px solid var(--color7); width: 100%; display: block; margin: 0.5em 0 0.5em 0"></div>
-                    `
-                })
+            setDeleteSelected(false)
+            document.getElementById("deleteTitle").innerHTML = "Delete All?"
+            if(itemData.length == 0){
+                document.getElementById("noDataDelete").style.display = "block"
             } else {
-                alldata += `<div className="noData" id="noData">No Expenses!</div>`
+                document.getElementById("noDataDelete").style.display = "none"
             }
-            document.getElementById("deleteAllData").innerHTML = alldata
         }
     }
 
@@ -245,6 +239,30 @@ function CRUD(){
         setItemData(itemData.filter((newData, index) => index != value))
         closeModal("modalOverlayDelete", "modalDelete")
     }
+
+
+
+    // DELETE-SELECTED-EXPENSE
+
+    function deleteSelectedExpense(){
+        const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
+        const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
+        
+        setItemData(updatedData);
+
+        indicesToRemove.map((data) => {
+            const element = document.getElementById(`item` + data);
+            if (selectedItemsListRef.current.includes(data)) {
+                const pos = selectedItemsListRef.current.indexOf(data);
+                if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
+                if (element) element.style.opacity = "1";
+            }
+        })
+        
+        selectedItemsListRef.current = [];
+        closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+    }
+
 
 
     // DELETE-ALL-EXPENSE
@@ -594,6 +612,9 @@ function CRUD(){
         }, 300);
     };
 
+
+    // SAVE-IMAGE
+
     const downloadImage = async () => {
     const element = document.getElementById('hidden-img-content');
 
@@ -636,6 +657,32 @@ function CRUD(){
         alert('Failed to save image. Please try again.');
     }
     };
+
+
+    // SELECTED
+
+    const selectedItemsListRef = useRef([]);
+    function selectItem(index) {
+        const element = document.getElementById(`item` + index);
+
+        if (!selectedItemsListRef.current.includes(index)) {
+            selectedItemsListRef.current.push(index);
+            if (element) element.style.opacity = "0.5";
+        } else {
+            const pos = selectedItemsListRef.current.indexOf(index);
+            if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
+            if (element) element.style.opacity = "1";
+        }
+        document.getElementById("deleteTitle").innerHTML = "Delete Selected?"
+
+        if(selectedItemsListRef.current.length > 0){
+            setDeleteSelected(true)
+        } else {
+            setDeleteSelected(false)
+            document.getElementById("deleteTitle").innerHTML = "Delete All?"
+        }
+    }
+
 
 
     return(
@@ -688,10 +735,10 @@ function CRUD(){
                         <NButton btnID={`btnLogoutOpen`} clickData={() => openModal(null, "Logout")} width={"100%"} height={"2.5em"} btnName={"Logout"} />
                     </div>
                     <div className="deleteAllBtn">
-                        <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"2.5em"} btnName={"Delete All"} />
+                        <NButton btnID={`btnDeleteAllOpen`} clickData={() => openModal(null, "DeleteAll")} width={"100%"} height={"2.5em"} btnName={"Delete"} />
                     </div>
                     <div className="addItemBtn">
-                        <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"2.5em"} btnName={"Add Expense"} />
+                        <NButton btnID={`btnAddOpen`} clickData={() => openModal(null, "Add")} width={"100%"} height={"2.5em"} btnName={"Add"} />
                     </div>
                     <div className="downloadImgBtn" id="downloadImgBtn">
                         <div id="imgBtn" style={{ width: "100%" }}>
@@ -765,11 +812,24 @@ function CRUD(){
                 <div className="corner3" id="corner3"></div>
                 <div className="corner4" id="corner4"></div>
                 <div className="modal" id="modalDeleteAll">
-                    <h1>Delete All?</h1>
-                    <div className="deleteAllData" id="deleteAllData"></div>
+                    <h1 id="deleteTitle"></h1>
+                    <p style={{ opacity: "0.5", fontSize: "0.75em", marginTop: "-1.25em" }}>Click items to delete the selected ones.</p>
+                    <div className="deleteAllData" id="deleteAllData">
+                        <div className="noData" id="noDataDelete" style={{ width: "auto",height: "auto", margin: "auto" }}>No Expenses to delete!</div>
+                        {(itemData).map((deleteItem, deleteItemIndex) => (
+                            <>
+                            <div className="selectableItem" id={`item${deleteItemIndex}`} onClick={() => selectItem(deleteItemIndex)}>
+                                <p id="namePText">Name : {deleteItem.itemName}</p>
+                                <p id="pricePText">Price : {deleteItem.itemPrice}</p>
+                                <p id="datePText">Date : {deleteItem.itemDate}</p>
+                            </div>
+                            <div className="divider1"></div>
+                            </>
+                        ))}
+                    </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDeleteAll", "modalDeleteAll")} width={"7em"} btnID={"cancelBtnDeleteAll"} btnName={"Cancel"} />
-                        <NButton clickData={deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/>
+                        <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/>
                     </div>
                 </div>
             </div>
