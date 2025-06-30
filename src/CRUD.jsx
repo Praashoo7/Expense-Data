@@ -21,6 +21,7 @@ function CRUD(){
     const [messageOpacity, setMessageOpacity] = useState("0");
     const [loaded, setLoaded] = useState(false);
     const [deleteSelected, setDeleteSelected] = useState(false)
+    const [error, setError] = useState("")
 
     const uid = localStorage.getItem("uid");
 
@@ -135,6 +136,7 @@ function CRUD(){
     // OPEN-MODAL
 
     function openModal(index, modalName){
+        setError("")
         document.getElementById(`modal${modalName}`).style.display = "flex"
         document.getElementById(`modalOverlay${modalName}`).style.display = "flex"
         document.getElementById(`wrapper`).style.filter = "blur(5px)"
@@ -200,6 +202,14 @@ function CRUD(){
 
     function closeModal(value, value1){
 
+        selectedItemsListRef.current.forEach((index) => {
+            const element = document.getElementById(`item${index}`);
+            if (element) element.style.opacity = "1";
+        });
+        selectedItemsListRef.current = [];
+        console.log(selectedItemsListRef.current);
+
+        console.log(selectedItemsListRef.current)
         document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
         document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
         document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
@@ -317,16 +327,47 @@ function CRUD(){
         );
         };
         let dateAddArray = date.split(",").map((item) => item.trim())
-        const validDates = dateAddArray.filter(dateAddFilter)
+        let validDates;
+        if (dateAddArray.length === 1 && dateAddArray[0].endsWith("...")) {
+        const singleDate = dateAddArray[0].replace("...", "").trim();
+        if (dateAddFilter(singleDate)) {
+            validDates = Array(nameAddCheck.length).fill(singleDate);
+        } else {
+            validDates = Array(nameAddCheck.length).fill("None");
+        }
+        } else {
+        validDates = dateAddArray.filter(dateAddFilter);
+        }
+
+        let hasError = false
+        const isNameInvalid = name.trim() && nameAddCheck.length === 0;
+        const isPriceInvalid = price.trim() && priceAddCheck.length === 0;
+        const isDateInvalid = date.trim() && validDates.length === 0;
+
+        if (isNameInvalid){
+            hasError= true
+            setError("Name Error!");
+            return;
+        } else if(isPriceInvalid){
+            hasError= true
+            setError("Price Error!");
+            return;
+        } else if(isDateInvalid) {
+            hasError= true
+            setError("Date Error!");
+            return;
+        }
 
         const newItems = nameAddCheck.map((name, index) => ({
-            itemName: name || "None",
-            itemPrice: priceAddCheck[index] ? `${priceAddCheck[index]}$` : "None",
-            itemDate: validDates[index] || "None"
-        }))
+        itemName: name || "None",
+        itemPrice: priceAddCheck[index] ? `${priceAddCheck[index]}$` : "None",
+        itemDate: validDates[index] || "None"
+        }));
 
-        setItemData(prev => [...prev, ...newItems])
-        closeModal("modalOverlayAdd", "modalAdd")
+        if(hasError == false){
+            setItemData(prev => [...prev, ...newItems]);
+            closeModal("modalOverlayAdd", "modalAdd")
+        }
     }
 
 
@@ -364,14 +405,43 @@ function CRUD(){
             itemDate: date || originalItem.itemDate
         }
 
-        const updatedData = [...itemData]
-        updatedData[indexToUpdate] = updatedItem
-        setItemData(updatedData)
-        closeModal("modalOverlayUpdate", "modalUpdate")
+        let hasError = false
+        const isNameInvalid = name.trim() && !nameCheck;
+        const isPriceInvalid = price.toString().trim() && priceCheck === undefined;
+        const isDateInvalid = date.trim() && !isValid;
+
+        if (isNameInvalid){
+            hasError= true
+            setError("Name Error!");
+            return;
+        } else if(isPriceInvalid){
+            hasError= true
+            setError("Price Error!");
+            return;
+        } else if(isDateInvalid) {
+            hasError= true
+            setError("Date Error!");
+            return;
+        }
+
+        if(hasError == false){
+            const updatedData = [...itemData]
+            updatedData[indexToUpdate] = updatedItem
+            setItemData(updatedData)
+            closeModal("modalOverlayUpdate", "modalUpdate")
+        }
     }
 
 
     // SORT
+
+    useEffect(() => {
+        let sortSaved = JSON.parse(localStorage.getItem("sortPreference"))
+        if(sortSaved){
+            setSortName(sortSaved.sortValue)
+            setSortCount(sortSaved.sortNumber)
+        }
+    }, [])
 
     function sortBy(){
         const sorted = [...itemData]
@@ -380,31 +450,61 @@ function CRUD(){
             setSortName("A-Z")
             setSortCount(1)
             sorted.sort((a,b) => a.itemName.localeCompare(b.itemName))
+            const sortPreference = {
+                sortNumber: 1,
+                sortValue: "A-Z"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         } else if(sortCount == 1){
             setSortName("Z-A")
             setSortCount(2)
             sorted.sort((a,b) => b.itemName.localeCompare(a.itemName))
+            const sortPreference = {
+                sortNumber: 2,
+                sortValue: "Z-A"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         } else if(sortCount == 2){
             setSortName("0-1")
             setSortCount(3)
             sorted.sort((a, b) => a.itemPrice.replace("$","") - b.itemPrice.replace("$",""))
+            const sortPreference = {
+                sortNumber: 3,
+                sortValue: "0-1"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         } else if(sortCount == 3){
             setSortName("1-0")
             setSortCount(4)
             sorted.sort((a, b) => b.itemPrice.replace("$","") - a.itemPrice.replace("$",""))
+            const sortPreference = {
+                sortNumber: 4,
+                sortValue: "1-0"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         } else if(sortCount == 4){
             setSortName("00-00-0000")
             setSortCount(5)
             sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate))
+            const sortPreference = {
+                sortNumber: 5,
+                sortValue: "00-00-0000"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         } else if(sortCount == 5){
             setSortName("11-11-1111")
             setSortCount(0)
             sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate))
+            const sortPreference = {
+                sortNumber: 0,
+                sortValue: "11-11-1111"
+            }
+            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
             setItemData(sorted)
         }
     }
@@ -760,6 +860,7 @@ function CRUD(){
                     <input tabIndex={0} autoComplete="off" id="updateModalNameData" type="text" />
                     <input tabIndex={0} autoComplete="off" id="updateModalPriceData" type="text" />
                     <input tabIndex={0} autoComplete="off" id="updateModalDateData" type="text" />
+                    <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayUpdate", "modalUpdate")} width={"7em"} btnID={"cancelBtnUpdate"} btnName={"Cancel"} />
                         <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName="Update"/>
@@ -775,9 +876,10 @@ function CRUD(){
                 <div className="corner4" id="corner4"></div>
                 <div className="modal" id="modalAdd">
                     <h1>Add Expense</h1>
-                    <input tabIndex={0} autoComplete="off" id="addModalNameData" type="text" placeholder="Name" onChange={addBtnCheck} />
-                    <input tabIndex={0} autoComplete="off" id="addModalPriceData" type="text" placeholder="Price" onChange={addBtnCheck} />
-                    <input tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} />
+                    <textarea tabIndex={0} autoComplete="off" id="addModalNameData" type="text" placeholder="Name" onChange={addBtnCheck} />
+                    <textarea tabIndex={0} autoComplete="off" id="addModalPriceData" type="text" placeholder="Price" onChange={addBtnCheck} />
+                    <textarea tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} />
+                    <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayAdd", "modalAdd")} width={"7em"} btnID={"cancelBtnAdd"} btnName={"Cancel"} />
                         <NButton clickData={addExpense} btnID={`btnModalAdd`} width={"7em"} btnName="Add"/>
@@ -857,7 +959,8 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
                         </div>
                         <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
-                        <li style={{ marginTop: "0.5em", marginBottom: "1em" }}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
+                        <li style={{ marginTop: "0.5em"}}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
+                        <li style={{ marginTop: "0.5em", marginBottom: "1em" }}>If you want to assign same date to multiple expenses while adding, Then just write the date ending it with 3 dots["..."]. After doing this the same date will be assigned to all newly added items at once. Example Usage : 01-12-2025...</li>
                         <NButton clickData={() => window.open("https://github.com/Praashoo7/Expense-Data", "_blank")} width={"100%"} height={"2.5em"} btnName={"Star on Github"} />
                     </div>
                     <div className="modalBtns">
