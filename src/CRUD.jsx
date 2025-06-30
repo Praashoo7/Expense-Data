@@ -760,6 +760,7 @@ function CRUD(){
         }
     }
 
+    const username = localStorage.getItem("loggedInUsername")
 
 
     return(
@@ -780,6 +781,7 @@ function CRUD(){
                     </div>
                 </div>
                 <div className="sortBtns">
+                    <span className="userNameWrapper">[<span className="userName" title={username}>{username}</span>]</span>
                     <NButton btnID={"sortBtn"} clickData={sortBy} width={"7.75em"} btnName={sortName}/>
                 </div>
                 <div className="dataItems">
@@ -789,7 +791,7 @@ function CRUD(){
                     <div className="item">
                         <div className="itemData">
                             <span className="itemIndex" style={{ textWrap: "nowrap" }}>[ {index} ]</span>
-                            <span className="itemName" style={{ maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.itemName}</span>
+                            <span className="itemName" title={item.itemName} style={{ userSelect: "none", maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.itemName}</span>
                             <span style={{ fontWeight: "bold" }} className="itemExpense">- {item.itemPrice}</span>
                         </div>
                         <div className="dataBtns">
@@ -970,6 +972,8 @@ function CRUD(){
             </div>
         </div>
         <div className="pdfContent" id="hidden-img-content">
+            <span className="userNameWrapperPDF">[<span className="userNamePDF" title={username}>{username}</span>]</span>
+            <div className="divider1" style={{ margin: "0 0 1em 0" }}></div>
             {(itemData).map((item, index) => (
                 <React.Fragment key={index}>
                     <div className="itemPDF">

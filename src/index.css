@@ -93,10 +93,33 @@ textarea{
   width: 100%;
   height: max-content;
   display: flex;
-  align-items: center;
-  justify-content: end;
+  align-items: end;
+  justify-content: space-between;
   margin-top: 3em;
   gap: 1em;
+}
+.userNameWrapper, .userNameWrapperPDF{
+  display: flex;
+  align-items: end;
+  opacity: 0.25;
+  color: var(--color4);
+}
+.userName, .userNamePDF{
+  display: inline-block;
+  user-select: none;
+  max-width: 350px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0 0.25em 0 0.25em;
+}
+.userNameWrapperPDF{
+  font-size: 1.5em;
+  opacity: 1;
+  color: var(--color4);
+}
+.userNamePDF{
+  max-width: 682px;
 }
 
 .itemData, .itemDataPDF{
@@ -144,7 +167,7 @@ textarea{
   font-family: JetBrains Mono;
   overflow: hidden;
   display: flex;
-  align-items: center;
+  align-items: start;
   justify-content: start;
   flex-direction: column;
   gap: 1em;
@@ -569,7 +592,7 @@ textarea{
   background-color: #171717;
   color: #e4e4e4;
   padding: 1em 0 1em 0;
-  margin-top: 0;
+  margin-top: 1em;
 }
 .addItemBtn, .deleteAllBtn, .logoutBtn, .downloadImgBtn{
   width: 8.5em;
@@ -726,6 +749,9 @@ textarea{
   .total{
     justify-content: center;
   }
+  .userName{
+    max-width: 150px;
+  }
 }
 @media screen and (max-width: 550px) {
   .modal{
@@ -763,6 +789,9 @@ textarea{
   .topBar{
     margin-bottom: 1em;
   }
+  .userName{
+    max-width: 120px;
+  }
 }
 @media screen and (max-width: 370px) {
   .authM{
@@ -778,6 +807,9 @@ textarea{
   }
   .downloadImgBtn .text-loader{
     margin: 0;
+  }
+  .userName{
+    max-width: 50px;
   }
 }
 
