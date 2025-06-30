@@ -592,7 +592,7 @@ function CRUD(){
             }
         }
 
-        if (event.key === "Enter" && !keyboardModeRef.current) {
+        if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
             if (updateModal?.style.display === "flex") {
             const button = document.getElementById("btnModalUpdate");
             if (button) button.click();
@@ -629,7 +629,7 @@ function CRUD(){
             focusable[prevIndex]?.focus();
         }
 
-        if (event.key === "Enter" && keyboardModeRef.current) {
+        if (event.key === "Enter" && !event.shiftKey && keyboardModeRef.current) {
             event.preventDefault();
             const el = document.activeElement;
             if (el) {
