@@ -103,10 +103,10 @@ textarea{
   align-items: end;
   opacity: 0.25;
   color: var(--color4);
+  user-select: none;
 }
 .userName, .userNamePDF{
   display: inline-block;
-  user-select: none;
   max-width: 350px;
   white-space: nowrap;
   overflow: hidden;
