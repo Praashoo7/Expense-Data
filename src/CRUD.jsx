@@ -207,9 +207,7 @@ function CRUD(){
             if (element) element.style.opacity = "1";
         });
         selectedItemsListRef.current = [];
-        console.log(selectedItemsListRef.current);
 
-        console.log(selectedItemsListRef.current)
         document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
         document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
         document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
