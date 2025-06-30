@@ -403,31 +403,10 @@ function CRUD(){
             itemDate: date || originalItem.itemDate
         }
 
-        let hasError = false
-        const isNameInvalid = name.trim() && !nameCheck;
-        const isPriceInvalid = price.toString().trim() && priceCheck === undefined;
-        const isDateInvalid = date.trim() && !isValid;
-
-        if (isNameInvalid){
-            hasError= true
-            setError("Name Error!");
-            return;
-        } else if(isPriceInvalid){
-            hasError= true
-            setError("Price Error!");
-            return;
-        } else if(isDateInvalid) {
-            hasError= true
-            setError("Date Error!");
-            return;
-        }
-
-        if(hasError == false){
-            const updatedData = [...itemData]
-            updatedData[indexToUpdate] = updatedItem
-            setItemData(updatedData)
-            closeModal("modalOverlayUpdate", "modalUpdate")
-        }
+        const updatedData = [...itemData]
+        updatedData[indexToUpdate] = updatedItem
+        setItemData(updatedData)
+        closeModal("modalOverlayUpdate", "modalUpdate")
     }
 
 
