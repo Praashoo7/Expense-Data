@@ -393,8 +393,8 @@ function CRUD(){
 
         const originalItem = itemData[indexToUpdate]
         const isValid = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/.test(date)
-        if(!isValid){
-            date = originalItem.itemDate
+        if(isValid){
+            originalItem.itemDate = date
         }
 
         const updatedItem = {
@@ -403,10 +403,39 @@ function CRUD(){
             itemDate: date || originalItem.itemDate
         }
 
-        const updatedData = [...itemData]
-        updatedData[indexToUpdate] = updatedItem
-        setItemData(updatedData)
-        closeModal("modalOverlayUpdate", "modalUpdate")
+        let hasError = false
+        const isNameInvalid = !nameCheck;
+        const isPriceInvalid = priceCheck === undefined;
+        const isDateInvalid = !isValid;
+
+        if(name.length != 0){
+            if (isNameInvalid){
+                hasError= true
+                setError("Name Error!");
+                return;
+            }
+        }
+        if(price.length != 0){
+            if (isPriceInvalid){
+                hasError= true
+                setError("Price Error!");
+                return;
+            }
+        }
+        if(date != "" || date == "None"){
+            if (isDateInvalid){
+                hasError= true
+                setError("Date Error!");
+                return;
+            }
+        }
+
+        if(hasError == false){
+            const updatedData = [...itemData]
+            updatedData[indexToUpdate] = updatedItem
+            setItemData(updatedData)
+            closeModal("modalOverlayUpdate", "modalUpdate")
+        }
     }
 
 
