@@ -712,6 +712,7 @@ function CRUD(){
     const handleLogout = async () => {
         await signOut(auth);
         localStorage.removeItem("loggedInUsername");
+        localStorage.removeItem("uid");
         closeModal("modalOverlayLogout", "modalLogout");
         setTimeout(() => {
             navigate("/Login");
