@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, useMemo } from "react"
 import NButton from "./NButton"
 import ThemeToggle from "./ThemeToggle";
 import { db } from "./Firebase";
@@ -6,6 +6,7 @@ import { doc, getDoc, setDoc } from "firebase/firestore";
 import { auth } from "./Firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import debounce from "lodash/debounce";
 
 function CRUD(){
 
@@ -22,11 +23,19 @@ function CRUD(){
     const [loaded, setLoaded] = useState(false);
     const [deleteSelected, setDeleteSelected] = useState(false)
     const [error, setError] = useState("")
+    const statsPress = useRef(false)
 
     const uid = localStorage.getItem("uid");
 
     useEffect(() => {
         if (!uid) return;
+
+        document.getElementById("statsBtn").style.pointerEvents = "none"
+        document.getElementById("btnLogoutOpen").style.pointerEvents = "none"
+        document.getElementById("btnDeleteAllOpen").style.pointerEvents = "none"
+        document.getElementById("btnAddOpen").style.pointerEvents = "none"
+        statsPress.current = false
+
 
         document.getElementById("noData").innerHTML = `Loading your Data<div class="text-loader"></div>`;
 
@@ -41,6 +50,7 @@ function CRUD(){
 
                 setTimeout(() => {
                     setOriginalData(data);
+                    document.getElementById("noData").innerHTML = "";
                     setItemData(data);
                 }, 500);
 
@@ -48,6 +58,11 @@ function CRUD(){
 
                 setTimeout(() => {
                     document.getElementById("noData").innerHTML = "No Expenses!";
+                    document.getElementById("statsBtn").style.pointerEvents = "auto"
+                    document.getElementById("btnLogoutOpen").style.pointerEvents = "auto"
+                    document.getElementById("btnDeleteAllOpen").style.pointerEvents = "auto"
+                    document.getElementById("btnAddOpen").style.pointerEvents = "auto"
+                    statsPress.current = true
                 }, 700);
             }
 
@@ -452,10 +467,21 @@ function CRUD(){
     function sortBy(){
         const sorted = [...itemData]
 
+        function getNumericPrice(priceStr) {
+            const cleaned = parseFloat(priceStr?.replace(/[^0-9.]/g, ""));
+            return isNaN(cleaned) ? -Infinity : cleaned;
+        }
+        function parseDate(dateStr) {
+            if (!dateStr || dateStr.toLowerCase() === "none") return -Infinity;
+            const [day, month, year] = dateStr.split("-").map(Number);
+            const date = new Date(year, month - 1, day);
+            return isNaN(date.getTime()) ? -Infinity : date.getTime();
+        }
+
         if(sortCount == 0){
             setSortName("A-Z")
             setSortCount(1)
-            sorted.sort((a,b) => a.itemName.localeCompare(b.itemName))
+            sorted.sort((a,b) => a.itemName.trim().localeCompare(b.itemName.trim()))
             const sortPreference = {
                 sortNumber: 1,
                 sortValue: "A-Z"
@@ -465,7 +491,7 @@ function CRUD(){
         } else if(sortCount == 1){
             setSortName("Z-A")
             setSortCount(2)
-            sorted.sort((a,b) => b.itemName.localeCompare(a.itemName))
+            sorted.sort((a,b) => b.itemName.trim().localeCompare(a.itemName.trim()))
             const sortPreference = {
                 sortNumber: 2,
                 sortValue: "Z-A"
@@ -475,7 +501,7 @@ function CRUD(){
         } else if(sortCount == 2){
             setSortName("0-1")
             setSortCount(3)
-            sorted.sort((a, b) => a.itemPrice.replace("$","") - b.itemPrice.replace("$",""))
+            sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
             const sortPreference = {
                 sortNumber: 3,
                 sortValue: "0-1"
@@ -485,7 +511,7 @@ function CRUD(){
         } else if(sortCount == 3){
             setSortName("1-0")
             setSortCount(4)
-            sorted.sort((a, b) => b.itemPrice.replace("$","") - a.itemPrice.replace("$",""))
+            sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
             const sortPreference = {
                 sortNumber: 4,
                 sortValue: "1-0"
@@ -495,7 +521,7 @@ function CRUD(){
         } else if(sortCount == 4){
             setSortName("00-00-0000")
             setSortCount(5)
-            sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate))
+            sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
             const sortPreference = {
                 sortNumber: 5,
                 sortValue: "00-00-0000"
@@ -505,7 +531,7 @@ function CRUD(){
         } else if(sortCount == 5){
             setSortName("11-11-1111")
             setSortCount(0)
-            sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate))
+            sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
             const sortPreference = {
                 sortNumber: 0,
                 sortValue: "11-11-1111"
@@ -521,15 +547,18 @@ function CRUD(){
     let topBarButtonsWidth1
     let topBarButtonsWidth2
     let topBarButtonsWidth3
+    let topBarButtonsWidth4
     const getScreenWidth = () => {
         if(window.innerWidth <= 450){
             topBarButtonsWidth1 = "6em"
             topBarButtonsWidth2 = "6em"
             topBarButtonsWidth3 = "7.75em"
+            topBarButtonsWidth4 = "100%"
         } else {
             topBarButtonsWidth1 = "2.75em"
             topBarButtonsWidth2 = "5em"
             topBarButtonsWidth3 = "8.75em"
+            topBarButtonsWidth4 = "7.75em"
         }
     }
     getScreenWidth()
@@ -607,6 +636,10 @@ function CRUD(){
             }
             if (event.key.toLowerCase() === "l") {
                 const button = document.getElementById("btnLogoutOpen");
+                if (button) button.click();
+            }
+            if (event.key.toLowerCase() === "o" && statsPress.current === true) {
+                const button = document.getElementById("statsBtn");
                 if (button) button.click();
             }
             if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
@@ -791,6 +824,15 @@ function CRUD(){
     }
 
     const username = localStorage.getItem("loggedInUsername")
+    function handleStats() {
+        navigate(`/${username}/Stats`, { state: { statsData: itemData } });
+    }
+
+    const debouncedSearch = useMemo(() => debounce(searchedData, 300), [originalData, searchName]);
+
+    const handleRedirect = () => {
+        window.open('https://praashoo7.github.io/NFS-MW-MenuCard/', '_blank'); // Replace with your desired URL
+    };
 
 
     return(
@@ -805,15 +847,19 @@ function CRUD(){
                     </div>
                 </div>
                 <div className="search">
-                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="findInput" onChange={(e) => searchedData(e.target.value)}/>
+                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="findInput" onChange={(e) => debouncedSearch(e.target.value)}/>
                     <div className="searchBtns">
                         <NButton btnID={"findBtn"} clickData={searchBy} width={topBarButtonsWidth3} btnName={searchName}/>
                     </div>
                 </div>
                 <div className="sortBtns">
                     <span className="userNameWrapper">[<span className="userName" title={username}>{username}</span>]</span>
-                    <NButton btnID={"sortBtn"} clickData={sortBy} width={"7.75em"} btnName={sortName}/>
+                    <div className="statSort">
+                        <NButton btnID={"sortBtn"} clickData={sortBy} width={topBarButtonsWidth4} btnName={sortName}/>
+                        <NButton btnID={"statsBtn"} clickData={handleStats} width={topBarButtonsWidth4} btnName={"Stats"}/>
+                    </div>
                 </div>
+                <div className="dataItemsWrap">
                 <div className="dataItems">
                     <div className="noData" id="noData" style={{ opacity: messageOpacity }}>No Expenses!</div>
                     {(searching ? searchData : itemData).map((item, index) => (
@@ -833,6 +879,11 @@ function CRUD(){
                     <div className="divider"></div>
                     </React.Fragment>
                     ))}
+                    </div>
+                    <div className="cornerBtnE11"></div>
+                    <div className="cornerBtnE12"></div>
+                    <div className="cornerBtnE13"></div>
+                    <div className="cornerBtnE14"></div>
                 </div>
             </div>
             <div className="bottomBar">
@@ -960,6 +1011,7 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>o</span> : Open Stats</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>p</span> : Save Image</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>l</span> : Logout</li>
@@ -969,7 +1021,8 @@ function CRUD(){
                         </div>
                         <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
                         <li style={{ marginTop: "0.5em"}}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
-                        <li style={{ marginTop: "0.5em", marginBottom: "1em" }}>If you want to assign same date to multiple expenses while adding, Then just write the date ending it with 3 dots["..."]. After doing this the same date will be assigned to all newly added items at once. Example Usage : 01-12-2025...</li>
+                        <li style={{ marginTop: "0.5em"}}>If you want to assign same date to multiple expenses while adding, Then just write the date ending it with 3 dots["..."]. After doing this the same date will be assigned to all newly added items at once. Example Usage : 01-12-2025...</li>
+                        <li style={{ marginTop: "0.5em", marginBottom: "1em" }}>This design is mostly inspired by the NFS Most Wanted[2005] video game menu, Which I recreated once using HTML/CSS for fun and I always wanted to implement it in a full scale site! So here we are. You can checkout the NFS MenuCard recreation <span style={{ textDecoration: "underline", cursor: "pointer" }} onClick={handleRedirect}>here.</span></li>
                         <NButton clickData={() => window.open("https://github.com/Praashoo7/Expense-Data", "_blank")} width={"100%"} height={"2.5em"} btnName={"Star on Github"} />
                     </div>
                     <div className="modalBtns">

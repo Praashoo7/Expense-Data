@@ -239,6 +239,10 @@ function ForgotPassword() {
           <NButton clickData={handleEmailSubmit} btnName={"Submit"} height={"2.5em"} width={"100%"} />
           <NButton clickData={handleBackToLogin} btnName={"Back to Login"} height={"2.5em"} width={"100%"} />
         </div>
+        <div className="cornerBtnE11"></div>
+        <div className="cornerBtnE12"></div>
+        <div className="cornerBtnE13"></div>
+        <div className="cornerBtnE14"></div>
       </div>
       {message && <p style={{ color: "var(--color7)", marginTop: "1em" }}>{message}</p>}
       {error && <p style={{ color: "var(--color7)", marginTop: "1em" }}>{error}</p>}

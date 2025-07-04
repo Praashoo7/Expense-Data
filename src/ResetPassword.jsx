@@ -213,6 +213,10 @@ function ResetPassword() {
           />
           <NButton clickData={handleResetPassword} btnName={"Submit"} height={"2.5em"} width={"100%"} />
         </div>
+        <div className="cornerBtnE11"></div>
+        <div className="cornerBtnE12"></div>
+        <div className="cornerBtnE13"></div>
+        <div className="cornerBtnE14"></div>
       </div>
         {message && <p style={{ color: "var(--color7)", marginTop: "1em", display:"flex" }}>{message}<div className="text-loader"></div></p>}
       {error && <p style={{ color: "var(--color7)", marginTop: "1em" }}>{error}</p>}

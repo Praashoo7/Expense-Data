@@ -2,15 +2,15 @@
     background-color: gray;
 }
 
-.dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar {
+body::-webkit-scrollbar, .dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar {
   width: 4px;
   transition: .4s ease-in-out;
 }
-.dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track, .dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track {
   background-color: transparent;
   transition: .4s ease-in-out;
 }
-.dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb {
   background-color: var(--color7); 
   transition: .4s ease-in-out;
   cursor: pointer;
@@ -21,7 +21,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: start;
   flex-direction: column;
   margin: 2em;
   z-index: 1;
@@ -98,6 +98,12 @@ textarea{
   margin-top: 3em;
   gap: 1em;
 }
+.statSort{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
 .userNameWrapper, .userNameWrapperPDF{
   display: flex;
   align-items: end;
@@ -135,18 +141,23 @@ textarea{
   overflow: auto;
   flex-wrap: wrap;
 }
+.dataItemsWrap{
+  position: relative;
+  width: 100%;
+  padding: 0.5em;
+  border: 1px solid var(--color6);
+}
 .dataItems{
   position: relative;
   width: 100%;
-  height: 300px;
-  min-height: 300px;
+  min-height: 395px;
+  height: 395px;
   display: flex;
   align-items: center;
   justify-content: start;
   flex-direction: column;
   gap: 1em;
-  padding: 1em;
-  border: 1px solid var(--color6);
+  padding: 0.5em;
   overflow-y: scroll;
   overflow-x: hidden;
   color: var(--color4);
@@ -201,7 +212,7 @@ textarea{
 .noData{
   position: absolute;
   width: 100%;
-  height: 85%;
+  height: 90%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -558,7 +569,7 @@ textarea{
 #text-loader-img{
   display: none;
 }
-.text-loader{
+.text-loader, .text-loader1{
   color: var(--color4);
   opacity: 0.75;
   font-size: 1em;
@@ -566,17 +577,25 @@ textarea{
   align-items: center;
   justify-content: center;
 }
-.text-loader::after {
+.text-loader::after, .text-loader1::after {
   margin: 0.15em 0 0 0.5em;
   font-weight: bold;
   content: "-";
   display: inline-block;
   animation: textSpin 0.5s steps(1) infinite;
 }
+.text-loader1::after {
+  animation: textSpin1 0.75s steps(1) infinite;
+}
 @keyframes textSpin {
   0%   { content: "-"; }
   25%  { content: "/"; }
   66%  { content: "\\"; }
+}
+@keyframes textSpin1 {
+  0%   { content: "\\"; }
+  25%  { content: "/"; }
+  66%  { content: "-"; }
 }
 
 .total, .totalPDF{
@@ -615,11 +634,22 @@ textarea{
 .downloadImgBtn .text-loader::after{
   margin: 0;
 }
+.downloadImgBtnChartWrap{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  margin-bottom: 2em;
+}
+.downloadImgBtnChart{
+  pointer-events: auto;
+}
 .bottomBar{
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: end;
+  padding-bottom: 2em;
 }
 .bBtns{
   width: 100%;
@@ -638,6 +668,7 @@ textarea{
   justify-content: center;
 }
 .loginForm{
+  position: relative;
   width: 300px;
   height: max-content;
   display: flex;
@@ -673,13 +704,136 @@ textarea{
 }
 
 
+.statsWrapper{
+  width: 100%;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--color4);
+  background-color: var(--color5);
+  padding: 2em;
+  max-width: 1280px;
+  transition: all 0.1s ease-in-out;
+  padding-bottom: 2em;
+  animation: wrapperLoad 0.5s ease-in-out;
+}
+.statsWrapperImg{
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 1280px;
+  z-index: 99;
+  padding: 2.75em 3em 3em 3em;
+}
+.statsHighestWrapper{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  flex-wrap: wrap;
+  gap: 1em;
+  padding: 2em 0 2em 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  margin-bottom: 2em;
+}
+.highestExpensePair{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+}
+.statsHighestExpense{
+  min-width: 200px;
+  display: flex;
+  align-items: start;
+  justify-content: center;
+  flex-direction: column;
+  background-color: var(--color13);
+  border: 1px solid var(--color7);
+  padding: 1em;
+  position: relative;
+}
+.cornerBtnE11,
+.cornerBtnE12,
+.cornerBtnE13,
+.cornerBtnE14 {
+    position: absolute;
+    width: 0.75em;
+    height: 0.75em;
+    background-color: transparent;
+    margin: -1px;
+    opacity: 0.5;
+}
+.cornerBtnE11{
+    top: 0;
+    left: 0;
+    border-top: 1px solid var(--color4);
+    border-left: 1px solid var(--color4);
+}
+.cornerBtnE12 {
+    top: 0;
+    right: 0;
+    border-top: 1px solid var(--color4);
+    border-right: 1px solid var(--color4);
+}
+.cornerBtnE13 {
+    bottom: 0;
+    left: 0;
+    border-bottom: 1px solid var(--color4);
+    border-left: 1px solid var(--color4);
+}
+.cornerBtnE14 {
+    bottom: 0;
+    right: 0;
+    border-bottom: 1px solid var(--color4);
+    border-right: 1px solid var(--color4);
+}
+.chartTop{
+  margin-bottom: 20px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  width: 100%;
+}
+
+
+.mainLanding{
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  padding: 5em 0 5em 0;
+  color: var(--color4);
+  flex-direction: column;
+  max-width: 1280px;
+  gap: 5em;
+}
+.landing{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.landingImg{
+  position: relative;
+  width: 100%;
+  margin: 0 5em 0 5em;
+  object-fit: contain;
+  background-color: #1C1C1C;
+  border: 1px solid #353535;
+}
+
+
 /* THEME */
 
 :root {
     --color1: #e8e8e8;
     --color2: #111111;
     --color3: #252525;
-    --color4: #efefef;
+    --color4: #CBCBCB;
     --color5: #0a0a0a;
     --color6: #151515;
     --color7: #353535;
@@ -688,10 +842,11 @@ textarea{
     --color10: #202020;
     --color11: #5f5f5f;
     --color12: #171717;
+    --color13: #0a0a0a;
 }
 [data-theme="dark"] {
     --color1: #171717;
-    --color2: #eeeeee;
+    --color2: #e4e4e4;
     --color3: #dadada;
     --color4: #101010;
     --color5: rgb(238, 238, 238);
@@ -702,6 +857,7 @@ textarea{
     --color10: #e0e0e0;
     --color11: #8f8f8f;
     --color12: #cccccc;
+    --color13: #F5F5F5;
 }
 
 
@@ -753,10 +909,32 @@ textarea{
     max-width: 150px;
   }
 }
+@media screen and (max-width: 615px) {
+  .chartTop{
+    display: flex;
+    align-items: start;
+    justify-content: start;
+    flex-direction: column;
+    gap: 1em;
+  }
+}
 @media screen and (max-width: 550px) {
   .modal{
     width: auto;
     max-width: 450px;
+  }
+  .sortBtns{
+    flex-direction: column;
+  }
+  .topBarChart{
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+    height: 100%;
+  }
+  .topBarBtnsChart{
+    width: 100%;
+    justify-content: start;
   }
 }
 @media screen and (max-width: 450px) {
@@ -768,9 +946,6 @@ textarea{
   }
   .topBar{
     height: 100%;
-  }
-  .sortBtns{
-    margin-top: 0;
   }
   .loginForm{
     width: 250px;
@@ -786,11 +961,17 @@ textarea{
   .topBarBtns{
     flex-direction: column;
   }
+  .topBarBtnsChart{
+    flex-direction: row;
+  }
   .topBar{
     margin-bottom: 1em;
   }
   .userName{
     max-width: 120px;
+  }
+  .statSort{
+    width: 100%;
   }
 }
 @media screen and (max-width: 370px) {
@@ -801,7 +982,7 @@ textarea{
     flex-direction: column;
     scale: 0.9;
   }
-  .text-loader{
+  .text-loader, .text-loader1{
     margin-top: 0.5em;
     margin-right: 0.5em;
   }
@@ -809,7 +990,13 @@ textarea{
     margin: 0;
   }
   .userName{
-    max-width: 50px;
+    max-width: 150px;
+  }
+  .statsHighestExpense{
+    min-width: 150px;
+  }
+  .statsHighestExpenseTitle, .statsHighestExpensePrice, .statsHighestExpenseName{
+    text-wrap: wrap;
   }
 }
 
@@ -835,7 +1022,7 @@ textarea{
 }
   
 @media only screen and (max-width: 279px) {
-  .wrapper, .modalOverlay, #wrapperLogin, .pdfContent{
+  .wrapper, .modalOverlay, #wrapperLogin, .pdfContent, .statsWrapper, .container{
       display: none;
   }
   body{
@@ -855,4 +1042,9 @@ textarea{
   .small_device_card{
     padding: 5px;
   }
+}
+
+svg:not(:root):focus {
+  outline: none;
+  opacity: 0.75;
 }

@@ -244,6 +244,10 @@ function SignUp() {
             <NButton clickData={handleSignUp} btnName={"SignUp"} width={"100%"} height={"2.5em"} />
             <NButton clickData={handleLogin} btnName={"Login"} width={"100%"} height={"2.5em"} />
         </div>
+        <div className="cornerBtnE11"></div>
+        <div className="cornerBtnE12"></div>
+        <div className="cornerBtnE13"></div>
+        <div className="cornerBtnE14"></div>
         </div>
         {error && <p style={{ color: "var(--color7)", marginTop: "1em" }}>{error}</p>}
     </div>

@@ -103,6 +103,10 @@ function NotFound() {
         <div className="loginForm">
         <h2 style={{ textAlign: "center", fontSize: "7em" }}>404</h2>
         <NButton clickData={handleLogin} btnName={"Back to Login"} width={"100%"} height={"2.5em"} />
+        <div className="cornerBtnE11"></div>
+        <div className="cornerBtnE12"></div>
+        <div className="cornerBtnE13"></div>
+        <div className="cornerBtnE14"></div>
         </div>
     </div>
     <div className="small_device">
