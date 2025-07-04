@@ -13,8 +13,8 @@ function Landing(){
         navigate("/Login")
     }
 
-    const featuresList = ["Simple", "Elegant", "Secure", "Functional", "AS GOOD AS NFS"]
-    const itemsList = ["Bills", "Netflix", "Food", "Trip", "Storage", "Groceries", "Uber", "Gas", "Donations", "Repairs", "Rent"]
+    const featuresList = ["Simple", "Elegant", "Secure", "Functional", "AS GOOD AS NFS", "Minimalistic", "Clean", "Modern", "Sleek", "Polished"]
+    const itemsList = ["Bills", "Netflix", "Food", "Trip", "Storage", "Groceries", "Uber", "Gas", "Donations", "Repairs", "Rent", "Kindle", "GitHub", "Shoes", "Car Wash", "Credit Card", "Tickets", "Souvenirs", "Gift", "Pet Food", "Clothes", "Snacks", "EMI"]
     const [currentIndex, setCurrentIndex] = useState(0);
     const [currentIndex1, setCurrentIndex1] = useState(0);
 
