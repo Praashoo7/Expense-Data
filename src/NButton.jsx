@@ -18,6 +18,7 @@ function NButton(props){
                 user-select: none;
                 cursor: pointer;
                 outline: none;
+                border: 1px solid var(--color14);
             }
             .okBtn:active {
                 background-color: #686868;

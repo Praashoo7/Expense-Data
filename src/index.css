@@ -843,6 +843,7 @@ textarea{
     --color11: #5f5f5f;
     --color12: #171717;
     --color13: #0a0a0a;
+    --color14: rgb(32, 32, 32, 0.5);
 }
 [data-theme="dark"] {
     --color1: #171717;
@@ -858,6 +859,7 @@ textarea{
     --color11: #8f8f8f;
     --color12: #cccccc;
     --color13: #F5F5F5;
+    --color14: rgb(32, 32, 32, 0.5);
 }
 
 
