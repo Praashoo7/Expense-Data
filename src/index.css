@@ -131,10 +131,11 @@ textarea{
 .itemData, .itemDataPDF{
   width: 50%;
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: start;
   gap: 1em;
   overflow: hidden;
+  height: 100%;
 }
 .moveData{
   width: 100%;
