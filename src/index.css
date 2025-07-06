@@ -26,7 +26,7 @@ body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-
   margin: 2em;
   z-index: 1;
   transition: all 0.1s ease-in-out;
-  padding-bottom: 2em;
+  /* padding-bottom: 2em; */
   animation: wrapperLoad 0.5s ease-in-out;
 }
 @keyframes wrapperLoad {
