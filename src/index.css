@@ -2,15 +2,15 @@
     background-color: gray;
 }
 
-body::-webkit-scrollbar, .dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar {
+body::-webkit-scrollbar, .dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar, .dropdownMenu::-webkit-scrollbar {
   width: 4px;
   transition: .4s ease-in-out;
 }
-body::-webkit-scrollbar-track, .dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track, .dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track, .dropdownMenu::-webkit-scrollbar-track {
   background-color: transparent;
   transition: .4s ease-in-out;
 }
-body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb, .dropdownMenu::-webkit-scrollbar-thumb {
   background-color: var(--color7); 
   transition: .4s ease-in-out;
   cursor: pointer;
@@ -831,6 +831,47 @@ textarea{
   background-color: #1C1C1C;
   border: 1px solid #353535;
 }
+
+
+.dateFilters {
+    display: flex;
+    gap: 0.5em;
+    padding: 0.5em;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+.filterDropdownWrapper {
+    position: relative;
+    display: inline-block;
+}
+.dropdownMenuWrap {
+  padding: 0.5em;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: var(--color5);
+  z-index: 99;
+  margin-top: 0.75em;
+  overflow: hidden;
+  border: 1px solid var(--color6);
+}
+.dropdownMenu {
+    background-color: var(--color5);
+    max-height: 300px;
+    overflow-y: auto;
+    min-width: 120px;
+    padding: 0.5em;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25em;
+    overflow-x: hidden;
+}
+/* .filterCount {
+    font-size: 0.85em;
+    opacity: 0.7;
+    min-width: fit-content;
+} */
 
 
 /* THEME */

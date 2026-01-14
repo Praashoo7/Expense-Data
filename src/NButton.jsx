@@ -90,6 +90,7 @@ function NButton(props){
                 background-color: transparent;
                 margin: -0.45em;
                 opacity: 0;
+                z-index: 9999;
             }
             .cornerBtn11{
                 top: 0;

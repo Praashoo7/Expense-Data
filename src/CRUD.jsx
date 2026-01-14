@@ -24,6 +24,11 @@ function CRUD(){
     const [deleteSelected, setDeleteSelected] = useState(false)
     const [error, setError] = useState("")
     const statsPress = useRef(false)
+    const [filterYear, setFilterYear] = useState("All");
+    const [filterMonth, setFilterMonth] = useState("All");
+    const [availableYears, setAvailableYears] = useState([]);
+    const [showYearDropdown, setShowYearDropdown] = useState(false);
+    const [showMonthDropdown, setShowMonthDropdown] = useState(false);
 
     const uid = localStorage.getItem("uid");
 
@@ -146,6 +151,74 @@ function CRUD(){
         })
         return `${total}$`
     }
+
+
+    // SORTBY-YEAR-MONTH
+
+    useEffect(() => {
+        const years = new Set();
+        itemData.forEach(item => {
+            if (item.itemDate !== "None") {
+                const [day, month, year] = item.itemDate.split("-");
+                if (year) years.add(year);
+            }
+        });
+        setAvailableYears(["All", ...Array.from(years).sort()]);
+    }, [itemData]);
+
+    const filteredByDate = useMemo(() => {
+        let filtered = itemData;
+        
+        if (filterYear !== "All") {
+            filtered = filtered.filter(item => {
+                if (item.itemDate === "None") return false;
+                const [day, month, year] = item.itemDate.split("-");
+                return year === filterYear;
+            });
+        }
+        
+        if (filterMonth !== "All") {
+            filtered = filtered.filter(item => {
+                if (item.itemDate === "None") return false;
+                const [day, month, year] = item.itemDate.split("-");
+                return month === filterMonth;
+            });
+        }
+        
+        return filtered;
+    }, [itemData, filterYear, filterMonth]);
+
+    const months = [
+        { value: "All", label: "All Months" },
+        { value: "01", label: "January" },
+        { value: "02", label: "February" },
+        { value: "03", label: "March" },
+        { value: "04", label: "April" },
+        { value: "05", label: "May" },
+        { value: "06", label: "June" },
+        { value: "07", label: "July" },
+        { value: "08", label: "August" },
+        { value: "09", label: "September" },
+        { value: "10", label: "October" },
+        { value: "11", label: "November" },
+        { value: "12", label: "December" }
+    ];
+
+    const resetFilters = () => {
+        setFilterYear("All");
+        setFilterMonth("All");
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.yearDropdownWrapper') && !event.target.closest('.monthDropdownWrapper')) {
+                setShowYearDropdown(false);
+                setShowMonthDropdown(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
 
     // OPEN-MODAL
@@ -300,33 +373,33 @@ function CRUD(){
     //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
     // }
     function deleteSelectedExpense(){
-    document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
-    document.getElementById("deleteBtn").style.display = "none"
-    document.getElementById("text-loader-delete").style.display = "block"
-    const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
-    const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
-    
-    setItemData(updatedData);
+        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
+        document.getElementById("deleteBtn").style.display = "none"
+        document.getElementById("text-loader-delete").style.display = "block"
+        const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
+        const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
+        
+        setItemData(updatedData);
 
-    indicesToRemove.map((data) => {
-        const element = document.getElementById(`item` + data);
-        if (selectedItemsListRef.current.includes(data)) {
-            const pos = selectedItemsListRef.current.indexOf(data);
-            if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
-            if (element) element.style.opacity = "1";
-        }
-    })
-    
-    selectedItemsListRef.current = [];
-    
-    setTimeout(() => {
-        // setDeleteLoading(false);
-        document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
-        document.getElementById("deleteBtn").style.display = "block"
-        document.getElementById("text-loader-delete").style.display = "none"
-        closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    }, 300);
-}
+        indicesToRemove.map((data) => {
+            const element = document.getElementById(`item` + data);
+            if (selectedItemsListRef.current.includes(data)) {
+                const pos = selectedItemsListRef.current.indexOf(data);
+                if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
+                if (element) element.style.opacity = "1";
+            }
+        })
+        
+        selectedItemsListRef.current = [];
+        
+        setTimeout(() => {
+            // setDeleteLoading(false);
+            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
+            document.getElementById("deleteBtn").style.display = "block"
+            document.getElementById("text-loader-delete").style.display = "none"
+            closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+        }, 300);
+    }
 
 
 
@@ -339,20 +412,20 @@ function CRUD(){
     //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
     // }
     function deleteAllExpense(){
-    document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
-    document.getElementById("deleteBtn").style.display = "none"
-    document.getElementById("text-loader-delete").style.display = "block"
-    setItemData([])
-    setOriginalData([])
-    setSearchData([])
-    
-    setTimeout(() => {
-        document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
-        document.getElementById("deleteBtn").style.display = "block"
-        document.getElementById("text-loader-delete").style.display = "none"
-        closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    }, 300);
-}
+        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
+        document.getElementById("deleteBtn").style.display = "none"
+        document.getElementById("text-loader-delete").style.display = "block"
+        setItemData([])
+        setOriginalData([])
+        setSearchData([])
+        
+        setTimeout(() => {
+            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
+            document.getElementById("deleteBtn").style.display = "block"
+            document.getElementById("text-loader-delete").style.display = "none"
+            closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+        }, 300);
+    }
 
 
     // ADD-BUTTON-DISABLE
@@ -998,13 +1071,88 @@ function CRUD(){
                     <span className="userNameWrapper">[<span className="userName" title={username}>{username}</span>]</span>
                     <div className="statSort">
                         <NButton btnID={"sortBtn"} clickData={sortBy} width={topBarButtonsWidth4} btnName={sortName}/>
+                        <div className="filterDropdownWrapper yearDropdownWrapper">
+                            <NButton 
+                                btnID={"yearFilterBtn"}
+                                clickData={() => {
+                                    setShowYearDropdown(!showYearDropdown);
+                                    setShowMonthDropdown(false);
+                                }}
+                                width={"120px"}
+                                btnName={filterYear === "All" ? "All Years" : filterYear}
+                            />
+                            {showYearDropdown && (
+                                <div className="dropdownMenuWrap">
+                                    <div className="dropdownMenu">
+                                        {availableYears.map(year => (
+                                            <NButton 
+                                                width={"8.5em"}
+                                                key={year}
+                                                btnID={`yearOption${year}`}
+                                                clickData={() => {
+                                                    setFilterYear(year);
+                                                    setShowYearDropdown(false);
+                                                }}
+                                                btnName={year === "All" ? "All Years" : year}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="cornerBtnE11"></div>
+                                    <div className="cornerBtnE12"></div>
+                                    <div className="cornerBtnE13"></div>
+                                    <div className="cornerBtnE14"></div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="filterDropdownWrapper monthDropdownWrapper">
+                            <NButton 
+                                btnID={"monthFilterBtn"}
+                                clickData={() => {
+                                    setShowMonthDropdown(!showMonthDropdown);
+                                    setShowYearDropdown(false);
+                                }}
+                                width={"140px"}
+                                btnName={months.find(m => m.value === filterMonth)?.label || "All Months"}
+                            />
+                            {showMonthDropdown && (
+                                <div className="dropdownMenuWrap">
+                                    <div className="dropdownMenu">
+                                        {months.map(month => (
+                                            <NButton 
+                                                width={"8.5em"}
+                                                paddingRight={"1em"}
+                                                key={month.value}
+                                                btnID={`monthOption${month.value}`}
+                                                clickData={() => {
+                                                    setFilterMonth(month.value);
+                                                    setShowMonthDropdown(false);
+                                                }}
+                                                btnName={month.label}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="cornerBtnE11"></div>
+                                    <div className="cornerBtnE12"></div>
+                                    <div className="cornerBtnE13"></div>
+                                    <div className="cornerBtnE14"></div>
+                                </div>
+                            )}
+                        </div>
                         <NButton btnID={"statsBtn"} clickData={handleStats} width={topBarButtonsWidth4} btnName={"Stats"}/>
+                        {/* {(filterYear !== "All" || filterMonth !== "All") && (
+                            <NButton 
+                                btnID={"resetFilterBtn"}
+                                clickData={resetFilters}
+                                width={"fit-content"}
+                                btnName={"Reset Filters"}
+                            />
+                        )} */}
                     </div>
                 </div>
                 <div className="dataItemsWrap">
                 <div className="dataItems">
                     <div className="noData" id="noData" style={{ opacity: messageOpacity }}>No Expenses!</div>
-                    {(searching ? searchData : itemData).map((item, index) => (
+                    {(searching ? searchData : filteredByDate).map((item, index) => (
                     <React.Fragment key={index}>
                     <div className="item">
                         <div className="itemData">
@@ -1029,9 +1177,30 @@ function CRUD(){
                 </div>
             </div>
             <div className="bottomBar">
+{(() => {
+            const calculateTotal = (data) => {
+                let total = 0;
+                data.forEach((item) => {
+                    let itemValue = 0;
+                    if(item.itemPrice === "None") { 
+                        itemValue = "0$" 
+                    } else { 
+                        itemValue = item.itemPrice 
+                    }
+                    const allExpenses = parseFloat(itemValue.replace("$",""));
+                    total += allExpenses;
+                });
+                return `${total}$`;
+            };
+
+            return (
                 <div className="total">
-                    <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
+                    <span>TOTAL : <span style={{ fontWeight: "bold" }}>
+                        {calculateTotal(searching ? searchData : filteredByDate)}
+                    </span></span>
                 </div>
+            );
+        })()}
                 <div className="bBtns">
                     <div className="logoutBtn">
                         <NButton btnID={`btnLogoutOpen`} clickData={() => openModal(null, "Logout")} width={"100%"} height={"2.5em"} btnName={"Logout"} />
