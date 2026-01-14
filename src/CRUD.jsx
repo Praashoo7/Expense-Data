@@ -257,45 +257,102 @@ function CRUD(){
 
     // DELETE-EXPENSE
 
+    // function deleteExpense(){
+    //     let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
+    //     setItemData(itemData.filter((newData, index) => index != value))
+    //     closeModal("modalOverlayDelete", "modalDelete")
+    // }
     function deleteExpense(){
+        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
+        document.getElementById("deleteBtn").style.display = "none"
+        document.getElementById("text-loader-delete").style.display = "block"
         let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
+        
         setItemData(itemData.filter((newData, index) => index != value))
-        closeModal("modalOverlayDelete", "modalDelete")
+        
+        setTimeout(() => {
+            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
+            document.getElementById("deleteBtn").style.display = "block"
+            document.getElementById("text-loader-delete").style.display = "none"
+            closeModal("modalOverlayDelete", "modalDelete")
+        }, 300);
     }
-
 
 
     // DELETE-SELECTED-EXPENSE
 
-    function deleteSelectedExpense(){
-        const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
-        const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
+    // function deleteSelectedExpense(){
+    //     const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
+    //     const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
         
-        setItemData(updatedData);
+    //     setItemData(updatedData);
 
-        indicesToRemove.map((data) => {
-            const element = document.getElementById(`item` + data);
-            if (selectedItemsListRef.current.includes(data)) {
-                const pos = selectedItemsListRef.current.indexOf(data);
-                if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
-                if (element) element.style.opacity = "1";
-            }
-        })
+    //     indicesToRemove.map((data) => {
+    //         const element = document.getElementById(`item` + data);
+    //         if (selectedItemsListRef.current.includes(data)) {
+    //             const pos = selectedItemsListRef.current.indexOf(data);
+    //             if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
+    //             if (element) element.style.opacity = "1";
+    //         }
+    //     })
         
-        selectedItemsListRef.current = [];
+    //     selectedItemsListRef.current = [];
+    //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+    // }
+    function deleteSelectedExpense(){
+    document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
+    document.getElementById("deleteBtn").style.display = "none"
+    document.getElementById("text-loader-delete").style.display = "block"
+    const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
+    const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
+    
+    setItemData(updatedData);
+
+    indicesToRemove.map((data) => {
+        const element = document.getElementById(`item` + data);
+        if (selectedItemsListRef.current.includes(data)) {
+            const pos = selectedItemsListRef.current.indexOf(data);
+            if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
+            if (element) element.style.opacity = "1";
+        }
+    })
+    
+    selectedItemsListRef.current = [];
+    
+    setTimeout(() => {
+        // setDeleteLoading(false);
+        document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
+        document.getElementById("deleteBtn").style.display = "block"
+        document.getElementById("text-loader-delete").style.display = "none"
         closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    }
+    }, 300);
+}
 
 
 
     // DELETE-ALL-EXPENSE
 
+    // function deleteAllExpense(){
+    //     setItemData([])
+    //     setOriginalData([])
+    //     setSearchData([])
+    //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
+    // }
     function deleteAllExpense(){
-        setItemData([])
-        setOriginalData([])
-        setSearchData([])
+    document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
+    document.getElementById("deleteBtn").style.display = "none"
+    document.getElementById("text-loader-delete").style.display = "block"
+    setItemData([])
+    setOriginalData([])
+    setSearchData([])
+    
+    setTimeout(() => {
+        document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
+        document.getElementById("deleteBtn").style.display = "block"
+        document.getElementById("text-loader-delete").style.display = "none"
         closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    }
+    }, 300);
+}
 
 
     // ADD-BUTTON-DISABLE
@@ -386,7 +443,76 @@ function CRUD(){
 
     // UPDATE-EXPENSE
 
+    // function updateExpense(){
+    //     const name = document.getElementById("updateModalNameData").value
+    //     const price = document.getElementById("updateModalPriceData").value
+    //     let date = document.getElementById("updateModalDateData").value
+
+    //     const dataKey = document.getElementById("updateModalNameData").getAttribute("data-key")
+    //     const indexToUpdate = parseInt(dataKey)
+
+    //     let nameCheck
+    //     if(isNaN(name) && isNaN(parseFloat(name))){
+    //         nameCheck = name
+    //     }
+
+    //     let priceCheck;
+    //     if (typeof price === "number"){
+    //         priceCheck = parseFloat(price)
+    //     } else if (typeof price === "string" && /^-?\d+(\.\d+)?$/.test(price.trim())) {
+    //         priceCheck = parseFloat(price.trim())
+    //     }
+
+    //     const originalItem = itemData[indexToUpdate]
+    //     const isValid = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/.test(date)
+    //     if(isValid){
+    //         originalItem.itemDate = date
+    //     }
+
+    //     const updatedItem = {
+    //         itemName: nameCheck || originalItem.itemName,
+    //         itemPrice: priceCheck ? `${priceCheck}$` : originalItem.itemPrice,
+    //         itemDate: date || originalItem.itemDate
+    //     }
+
+    //     let hasError = false
+    //     const isNameInvalid = !nameCheck;
+    //     const isPriceInvalid = priceCheck === undefined;
+    //     const isDateInvalid = !isValid;
+
+    //     if(name.length != 0){
+    //         if (isNameInvalid){
+    //             hasError= true
+    //             setError("Name Error!");
+    //             return;
+    //         }
+    //     }
+    //     if(price.length != 0){
+    //         if (isPriceInvalid){
+    //             hasError= true
+    //             setError("Price Error!");
+    //             return;
+    //         }
+    //     }
+    //     if(date != "" || date == "None"){
+    //         if (isDateInvalid){
+    //             hasError= true
+    //             setError("Date Error!");
+    //             return;
+    //         }
+    //     }
+
+    //     if(hasError == false){
+    //         const updatedData = [...itemData]
+    //         updatedData[indexToUpdate] = updatedItem
+    //         setItemData(updatedData)
+    //         closeModal("modalOverlayUpdate", "modalUpdate")
+    //     }
+    // }
     function updateExpense(){
+        document.getElementById("updateBtnWrap").style.pointerEvents = "none"
+        document.getElementById("updateBtn").style.display = "none"
+        document.getElementById("text-loader-update").style.display = "block"
         const name = document.getElementById("updateModalNameData").value
         const price = document.getElementById("updateModalPriceData").value
         let date = document.getElementById("updateModalDateData").value
@@ -427,6 +553,9 @@ function CRUD(){
             if (isNameInvalid){
                 hasError= true
                 setError("Name Error!");
+                document.getElementById("updateBtnWrap").style.pointerEvents = "auto"
+                document.getElementById("updateBtn").style.display = "block"
+                document.getElementById("text-loader-update").style.display = "none"
                 return;
             }
         }
@@ -434,6 +563,9 @@ function CRUD(){
             if (isPriceInvalid){
                 hasError= true
                 setError("Price Error!");
+                document.getElementById("updateBtnWrap").style.pointerEvents = "auto"
+                document.getElementById("updateBtn").style.display = "block"
+                document.getElementById("text-loader-update").style.display = "none"
                 return;
             }
         }
@@ -441,6 +573,9 @@ function CRUD(){
             if (isDateInvalid){
                 hasError= true
                 setError("Date Error!");
+                document.getElementById("updateBtnWrap").style.pointerEvents = "auto"
+                document.getElementById("updateBtn").style.display = "block"
+                document.getElementById("text-loader-update").style.display = "none"
                 return;
             }
         }
@@ -449,9 +584,16 @@ function CRUD(){
             const updatedData = [...itemData]
             updatedData[indexToUpdate] = updatedItem
             setItemData(updatedData)
-            closeModal("modalOverlayUpdate", "modalUpdate")
+            
+            setTimeout(() => {
+                document.getElementById("updateBtnWrap").style.pointerEvents = "auto"
+                document.getElementById("updateBtn").style.display = "block"
+                document.getElementById("text-loader-update").style.display = "none"
+                closeModal("modalOverlayUpdate", "modalUpdate")
+            }, 300);
         }
     }
+
 
 
     // SORT
@@ -923,7 +1065,13 @@ function CRUD(){
                     <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayUpdate", "modalUpdate")} width={"7em"} btnID={"cancelBtnUpdate"} btnName={"Cancel"} />
-                        <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName="Update"/>
+                        {/* <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName="Update"/> */}
+                        <div className="updateBtnWrap" id="updateBtnWrap">
+                            <div id="updateBtn" style={{ width: "100%" }}>
+                            <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName={"Update"}/>
+                            </div>
+                            <div className="text-loader" id="text-loader-update"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -962,7 +1110,13 @@ function CRUD(){
                     </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDelete", "modalDelete")} width={"7em"} btnID={"cancelBtnDelete"} btnName={"Cancel"} />
-                        <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName="Delete"/>
+                        {/* <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName="Delete"/> */}
+                        <div className="deleteBtnWrap" id="deleteBtnWrap">
+                            <div id="deleteBtn" style={{ width: "100%" }}>
+                            <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName={"Delete"}/>
+                            </div>
+                            <div className="text-loader" id="text-loader-delete"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -979,19 +1133,25 @@ function CRUD(){
                     <div className="deleteAllData" id="deleteAllData">
                         <div className="noData" id="noDataDelete" style={{ width: "auto",height: "auto", margin: "auto" }}>No Expenses to delete!</div>
                         {(itemData).map((deleteItem, deleteItemIndex) => (
-                            <>
+                            <div>
                             <div className="selectableItem" id={`item${deleteItemIndex}`} onClick={() => selectItem(deleteItemIndex)}>
                                 <p id="namePText">Name : {deleteItem.itemName}</p>
                                 <p id="pricePText">Price : {deleteItem.itemPrice}</p>
                                 <p id="datePText">Date : {deleteItem.itemDate}</p>
                             </div>
                             <div className="divider1"></div>
-                            </>
+                            </div>
                         ))}
                     </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDeleteAll", "modalDeleteAll")} width={"7em"} btnID={"cancelBtnDeleteAll"} btnName={"Cancel"} />
-                        <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/>
+                        {/* <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/> */}
+                        <div className="deleteAllBtnWrap" id="deleteAllBtnWrap">
+                            <div id="deleteAllBtn" style={{ width: "100%" }}>
+                            <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName={"Delete All"}/>
+                            </div>
+                            <div className="text-loader" id="text-loader-deleteAll"></div>
+                        </div>
                     </div>
                 </div>
             </div>

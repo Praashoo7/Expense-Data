@@ -567,7 +567,7 @@ textarea{
   align-items: center;
   justify-content: center;
 }
-#text-loader-img{
+#text-loader-img, #text-loader-update, #text-loader-delete, #text-loader-deleteAll{
   display: none;
 }
 .text-loader, .text-loader1{
@@ -614,25 +614,30 @@ textarea{
   padding: 1em 0 1em 0;
   margin-top: 1em;
 }
-.addItemBtn, .deleteAllBtn, .logoutBtn, .downloadImgBtn{
+.addItemBtn, .deleteAllBtn, .logoutBtn, .downloadImgBtn, .updateBtnWrap, .deleteBtnWrap, .updateAllBtnWrap{
   width: 8.5em;
   display: flex;
   align-items: center;
   justify-content: center;
   margin-top: 1em;
 }
-.downloadImgBtn{
+.downloadImgBtn, .updateBtnWrap, .deleteBtnWrap, .updateAllBtnWrap{
   background-color: #171717;
   color: #e4e4e4;
   height: 2.5em;
   pointer-events: none;
 }
-.downloadImgBtn .text-loader{
+.updateBtnWrap, .deleteBtnWrap, .updateAllBtnWrap{
+  width: 7em;
+  margin-top: 0;
+  pointer-events: auto;
+}
+.downloadImgBtn .text-loader, .updateBtnWrap .text-loader, .deleteBtnWrap .text-loader, .updateAllBtnWrap .text-loader{
   opacity: 1;
   color: #e4e4e4;
   margin: 0;
 }
-.downloadImgBtn .text-loader::after{
+.downloadImgBtn .text-loader::after, .updateBtnWrap .text-loader::after, .deleteBtnWrap .text-loader::after, .updateAllBtnWrap .text-loader::after{
   margin: 0;
 }
 .downloadImgBtnChartWrap{
