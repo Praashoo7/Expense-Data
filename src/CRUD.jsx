@@ -1177,30 +1177,30 @@ function CRUD(){
                 </div>
             </div>
             <div className="bottomBar">
-{(() => {
-            const calculateTotal = (data) => {
-                let total = 0;
-                data.forEach((item) => {
-                    let itemValue = 0;
-                    if(item.itemPrice === "None") { 
-                        itemValue = "0$" 
-                    } else { 
-                        itemValue = item.itemPrice 
-                    }
-                    const allExpenses = parseFloat(itemValue.replace("$",""));
-                    total += allExpenses;
-                });
-                return `${total}$`;
-            };
+                {(() => {
+                    const calculateTotal = (data) => {
+                        let total = 0;
+                        data.forEach((item) => {
+                            let itemValue = 0;
+                            if(item.itemPrice === "None") { 
+                                itemValue = "0$" 
+                            } else { 
+                                itemValue = item.itemPrice 
+                            }
+                            const allExpenses = parseFloat(itemValue.replace("$",""));
+                            total += allExpenses;
+                        });
+                        return `${total}$`;
+                    };
 
-            return (
-                <div className="total">
-                    <span>TOTAL : <span style={{ fontWeight: "bold" }}>
-                        {calculateTotal(searching ? searchData : filteredByDate)}
-                    </span></span>
-                </div>
-            );
-        })()}
+                    return (
+                        <div className="total">
+                            <span>TOTAL : <span style={{ fontWeight: "bold" }}>
+                                {calculateTotal(searching ? searchData : filteredByDate)}
+                            </span></span>
+                        </div>
+                    );
+                })()}
                 <div className="bBtns">
                     <div className="logoutBtn">
                         <NButton btnID={`btnLogoutOpen`} clickData={() => openModal(null, "Logout")} width={"100%"} height={"2.5em"} btnName={"Logout"} />
