@@ -1340,7 +1340,7 @@ function CRUD(){
                                 </div>
                             )}
                         </div>
-                        <NButton btnID={"statsBtn"} clickData={handleStats} width={topBarButtonsWidth4} btnName={"Stats"}/>
+                        <NButton btnID={"statsBtn"} clickData={handleStats} width={topBarButtonsWidth4} height={"2.5em"} btnName={"Stats"}/>
                         {/* {(filterYear !== "All" || filterMonth !== "All") && (
                             <NButton 
                                 btnID={"resetFilterBtn"}
