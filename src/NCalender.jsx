@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import NButton from './NButton';
 
 function DateSelector({ onDateSelect, initialDate = null }) {
@@ -7,6 +7,37 @@ function DateSelector({ onDateSelect, initialDate = null }) {
     const [currentYear, setCurrentYear] = useState(initialDate ? initialDate.getFullYear() : new Date().getFullYear());
     const [showMonthSelector, setShowMonthSelector] = useState(false);
     const [showYearSelector, setShowYearSelector] = useState(false);
+    const [position, setPosition] = useState({ top: 0, left: 0 });
+    const containerRef = useRef(null);
+
+    useEffect(() => {
+        if (containerRef.current) {
+            const rect = containerRef.current.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const viewportHeight = window.innerHeight;
+            
+            let adjustedTop = 0;
+            let adjustedLeft = 0;
+
+            if (rect.right > viewportWidth) {
+                adjustedLeft = -(rect.right - viewportWidth) - 10;
+            }
+
+            if (rect.left < 0) {
+                adjustedLeft = -rect.left + 10;
+            }
+
+            if (rect.bottom > viewportHeight) {
+                adjustedTop = -(rect.bottom - viewportHeight) - 10;
+            }
+
+            if (rect.top < 0) {
+                adjustedTop = -rect.top + 10;
+            }
+
+            setPosition({ top: adjustedTop, left: adjustedLeft });
+        }
+    }, [showMonthSelector, showYearSelector]);
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -70,14 +101,12 @@ function DateSelector({ onDateSelect, initialDate = null }) {
         const totalDays = daysInMonth(currentMonth, currentYear);
         const firstDay = getFirstDayOfMonth(currentMonth, currentYear);
 
-        // Empty cells for days before month starts
         for (let i = 0; i < firstDay; i++) {
             days.push(
                 <div key={`empty-${i}`} className="calendar-day-empty"></div>
             );
         }
 
-        // Actual days
         for (let day = 1; day <= totalDays; day++) {
             const isSelected = selectedDate && 
                 selectedDate.getDate() === day && 
@@ -131,9 +160,15 @@ function DateSelector({ onDateSelect, initialDate = null }) {
             .date-selector-container {
                 background-color: #171717;
                 border: 1px solid var(--color14);
-                padding: 1em;
+                font-size: 0.9em;
+                padding: 0.75em;
                 width: fit-content;
                 user-select: none;
+                position: relative;
+                max-width: 95vw;
+                max-height: 95vh;
+                overflow: auto;
+                z-index: 99999;
             }
 
             .date-selector-header {
@@ -174,12 +209,12 @@ function DateSelector({ onDateSelect, initialDate = null }) {
 
             .calendar-day {
                 aspect-ratio: 1;
-                min-width: 2.5em;
+                min-width: 2em !important;
             }
 
             .calendar-day-empty {
                 aspect-ratio: 1;
-                min-width: 2.5em;
+                min-width: 2em !important;
             }
 
             .calendar-day.selected .okBtn {
@@ -199,8 +234,8 @@ function DateSelector({ onDateSelect, initialDate = null }) {
                 padding: 0.5em;
             }
 
-            .month-option {
-                min-width: 5em;
+            .month-option, .year-option {
+                min-width: 4em !important;
             }
 
             .year-selector-grid {
@@ -214,94 +249,117 @@ function DateSelector({ onDateSelect, initialDate = null }) {
                 padding: 0.5em;
             }
 
-            .year-option {
-                min-width: 5em;
+            @media (max-width: 480px) {
+                .date-selector-container {
+                    font-size: 0.8em;
+                    padding: 0.5em;
+                }
+                
+                .calendar-day {
+                    min-width: 1.75em !important;
+                }
+                
+                .calendar-day-empty {
+                    min-width: 1.75em !important;
+                }
             }
         `}</style>
-        <div className="date-selector-container">
-            <div className="date-selector-header">
-                <div className="month-year-controls">
-                    <NButton 
-                        btnID="prev-month"
-                        clickData={handlePrevMonth}
-                        width="3em"
-                        btnName="◀"
-                    />
-                    <NButton 
-                        btnID="month-display"
-                        clickData={() => {
-                            setShowMonthSelector(!showMonthSelector);
-                            setShowYearSelector(false);
-                        }}
-                        width="100%"
-                        btnName={months[currentMonth]}
-                    />
-                    <NButton 
-                        btnID="next-month"
-                        clickData={handleNextMonth}
-                        width="3em"
-                        btnName="▶"
-                    />
+        <div className='calenderWrapper'>
+            <div 
+                ref={containerRef}
+                className="date-selector-container"
+                style={{
+                    transform: `translate(${position.left}px, ${position.top}px)`
+                }}
+            >
+                <div className="date-selector-header">
+                    <div className="month-year-controls">
+                        <NButton 
+                            btnID="prev-month"
+                            clickData={handlePrevMonth}
+                            width="3em"
+                            btnName="◀"
+                        />
+                        <NButton 
+                            btnID="month-display"
+                            clickData={() => {
+                                setShowMonthSelector(!showMonthSelector);
+                                setShowYearSelector(false);
+                            }}
+                            width="100%"
+                            btnName={months[currentMonth]}
+                        />
+                        <NButton 
+                            btnID="next-month"
+                            clickData={handleNextMonth}
+                            width="3em"
+                            btnName="▶"
+                        />
+                    </div>
+
+                    <div className="year-controls">
+                        <NButton 
+                            btnID="prev-year"
+                            clickData={handlePrevYear}
+                            width="3em"
+                            btnName="◀"
+                        />
+                        <NButton 
+                            btnID="year-display"
+                            clickData={() => {
+                                setShowYearSelector(!showYearSelector);
+                                setShowMonthSelector(false);
+                            }}
+                            width="100%"
+                            btnName={currentYear.toString()}
+                        />
+                        <NButton 
+                            btnID="next-year"
+                            clickData={handleNextYear}
+                            width="3em"
+                            btnName="▶"
+                        />
+                    </div>
                 </div>
 
-                <div className="year-controls">
-                    <NButton 
-                        btnID="prev-year"
-                        clickData={handlePrevYear}
-                        width="3em"
-                        btnName="◀"
-                    />
-                    <NButton 
-                        btnID="year-display"
-                        clickData={() => {
-                            setShowYearSelector(!showYearSelector);
-                            setShowMonthSelector(false);
-                        }}
-                        width="100%"
-                        btnName={currentYear.toString()}
-                    />
-                    <NButton 
-                        btnID="next-year"
-                        clickData={handleNextYear}
-                        width="3em"
-                        btnName="▶"
-                    />
-                </div>
-            </div>
-
-            {showMonthSelector && (
-                <div className="month-selector-grid">
-                    {months.map((month, index) => (
-                        <div key={month} className="month-option">
-                            <NButton 
-                                btnID={`month-${index}`}
-                                clickData={() => handleMonthSelect(index)}
-                                width="100%"
-                                btnName={month.substring(0, 3)}
-                            />
-                        </div>
-                    ))}
-                </div>
-            )}
-
-            {showYearSelector && (
-                <div className="year-selector-grid">
-                    {renderYearSelector()}
-                </div>
-            )}
-
-            {!showMonthSelector && !showYearSelector && (
-                <>
-                    <div className="weekday-header">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                            <div key={day} className="weekday-label">{day}</div>
+                {showMonthSelector && (
+                    <div className="month-selector-grid">
+                        {months.map((month, index) => (
+                            <div key={month} className="month-option">
+                                <NButton 
+                                    btnID={`month-${index}`}
+                                    clickData={() => handleMonthSelect(index)}
+                                    width="100%"
+                                    btnName={month.substring(0, 3)}
+                                />
+                            </div>
                         ))}
                     </div>
-                    <div className="calendar-grid">
-                        {renderCalendarDays()}
+                )}
+
+                {showYearSelector && (
+                    <div className="year-selector-grid">
+                        {renderYearSelector()}
                     </div>
-                </>
-            )}
+                )}
+
+                {!showMonthSelector && !showYearSelector && (
+                    <>
+                        <div className="weekday-header">
+                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                                <div key={day} className="weekday-label">{day}</div>
+                            ))}
+                        </div>
+                        <div className="calendar-grid">
+                            {renderCalendarDays()}
+                        </div>
+                    </>
+                )}
+            </div>
+            <div className="cornerBtnE11"></div>
+            <div className="cornerBtnE12"></div>
+            <div className="cornerBtnE13"></div>
+            <div className="cornerBtnE14"></div>
         </div>
         </>
     );

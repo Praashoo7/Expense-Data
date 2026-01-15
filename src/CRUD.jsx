@@ -1664,11 +1664,11 @@ function CRUD(){
                         />
                         {showUpdateDatePicker && (
                             <div style={{ 
-                                position: 'absolute', 
-                                zIndex: 1000,
-                                marginTop: '0.5em',
+                                position: 'fixed',
+                                zIndex: '99999',
+                                top: '50%',
                                 left: '50%',
-                                transform: 'translateX(-50%)'
+                                transform: 'translate(-50%, -50%)'
                             }}>
                                 <DateSelector 
                                     onDateSelect={handleUpdateDateSelect}
@@ -1734,11 +1734,11 @@ function CRUD(){
                         </div>
                         {showDatePicker && (
                             <div style={{ 
-                                position: 'absolute', 
-                                zIndex: 1000,
-                                marginTop: '0.5em',
-                                left: '11.5%',
-                                transform: 'translateY(57%)'
+                                position: 'fixed',
+                                zIndex: '99999',
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)'
                             }}>
                                 <DateSelector 
                                     onDateSelect={handleAddDateSelect}

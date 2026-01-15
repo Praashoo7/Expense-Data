@@ -274,7 +274,7 @@ textarea{
   margin: 1em;
   opacity: 0;
 }
-.menuWrapper{
+.menuWrapper, .calenderWrapper{
   position: relative;
 }
 
