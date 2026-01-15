@@ -7,6 +7,7 @@ import { auth } from "./Firebase";
 import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
+import DateSelector from "./NCalender";
 
 function CRUD(){
 
@@ -29,6 +30,13 @@ function CRUD(){
     const [availableYears, setAvailableYears] = useState([]);
     const [showYearDropdown, setShowYearDropdown] = useState(false);
     const [showMonthDropdown, setShowMonthDropdown] = useState(false);
+    const [showSortDropdown, setShowSortDropdown] = useState(false);
+    const [showDatePicker, setShowDatePicker] = useState(false);
+    const [showUpdateDatePicker, setShowUpdateDatePicker] = useState(false);
+    const [datePickerMode, setDatePickerMode] = useState('add');
+    const [editingDateIndex, setEditingDateIndex] = useState(null);
+    const dateInputRef = useRef(null);
+    const updateDateInputRef = useRef(null);
 
     const uid = localStorage.getItem("uid");
 
@@ -221,9 +229,99 @@ function CRUD(){
     }, []);
 
 
+    // CUSTOM-DATE-PICKER
+
+    const parseDateString = (dateStr) => {
+        if (!dateStr.trim()) return [];
+        return dateStr.split(',').map(d => d.trim()).filter(d => d && d !== '');
+    };
+
+    const handleAddDateSelect = (date) => {
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+        const currentValue = document.getElementById("addModalDateData").value;
+        
+        if (datePickerMode === 'add') {
+            const newValue = currentValue ? `${currentValue}, ${formattedDate}` : formattedDate;
+            document.getElementById("addModalDateData").value = newValue;
+        } else {
+            const dates = parseDateString(currentValue);
+            dates[editingDateIndex] = formattedDate;
+            document.getElementById("addModalDateData").value = dates.join(', ');
+        }
+        
+        setShowDatePicker(false);
+        setDatePickerMode('add');
+        setEditingDateIndex(null);
+    };
+
+    const handleUpdateDateSelect = (date) => {
+        const formattedDate = `${String(date.getDate()).padStart(2, '0')}-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`;
+        document.getElementById("updateModalDateData").value = formattedDate;
+        setShowUpdateDatePicker(false);
+    };
+
+    const handleDateTextClick = (e) => {
+        const input = document.getElementById("addModalDateData");
+        const text = input.value;
+        const cursorPos = input.selectionStart;
+        
+        if (!text) {
+            setDatePickerMode('add');
+            setShowDatePicker(true);
+            return;
+        }
+        
+        const dates = parseDateString(text);
+        let currentPos = 0;
+        let clickedDateIndex = -1;
+
+        for (let i = 0; i < dates.length; i++) {
+            const dateLength = dates[i].length;
+            const nextPos = currentPos + dateLength;
+            
+            if (cursorPos >= currentPos && cursorPos <= nextPos) {
+                clickedDateIndex = i;
+                break;
+            }
+            
+            currentPos = nextPos + 2;
+        }
+        
+        if (clickedDateIndex !== -1) {
+            setDatePickerMode('edit');
+            setEditingDateIndex(clickedDateIndex);
+
+            const clickedDate = dates[clickedDateIndex];
+            const [day, month, year] = clickedDate.split('-').map(Number);
+            const initialDate = new Date(year, month - 1, day);
+            
+            setShowDatePicker(true);
+        }
+    };
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (!event.target.closest('.date-selector-container') && 
+                !event.target.closest('#addModalDateData') &&
+                !event.target.closest('#addDatePickerBtn') &&
+                !event.target.closest('#updateDatePickerBtn')) {
+                setShowDatePicker(false);
+                setShowUpdateDatePicker(false);
+            }
+        };
+        
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+
     // OPEN-MODAL
 
     function openModal(index, modalName){
+        setShowDatePicker(false);
+        setShowUpdateDatePicker(false);
+        setDatePickerMode('add');
+        setEditingDateIndex(null);
         setError("")
         document.getElementById(`modal${modalName}`).style.display = "flex"
         document.getElementById(`modalOverlay${modalName}`).style.display = "flex"
@@ -671,21 +769,108 @@ function CRUD(){
 
     // SORT
 
-    useEffect(() => {
-        let sortSaved = JSON.parse(localStorage.getItem("sortPreference"))
-        if(sortSaved){
-            setSortName(sortSaved.sortValue)
-            setSortCount(sortSaved.sortNumber)
-        }
-    }, [])
+    // useEffect(() => {
+    //     let sortSaved = JSON.parse(localStorage.getItem("sortPreference"))
+    //     if(sortSaved){
+    //         setSortName(sortSaved.sortValue)
+    //         setSortCount(sortSaved.sortNumber)
+    //     }
+    // }, [])
 
-    function sortBy(){
-        const sorted = [...itemData]
+    // function sortBy(){
+    //     const sorted = [...itemData]
+
+    //     function getNumericPrice(priceStr) {
+    //         const cleaned = parseFloat(priceStr?.replace(/[^0-9.]/g, ""));
+    //         return isNaN(cleaned) ? -Infinity : cleaned;
+    //     }
+    //     function parseDate(dateStr) {
+    //         if (!dateStr || dateStr.toLowerCase() === "none") return -Infinity;
+    //         const [day, month, year] = dateStr.split("-").map(Number);
+    //         const date = new Date(year, month - 1, day);
+    //         return isNaN(date.getTime()) ? -Infinity : date.getTime();
+    //     }
+
+    //     if(sortCount == 0){
+    //         setSortName("A-Z")
+    //         setSortCount(1)
+    //         sorted.sort((a,b) => a.itemName.trim().localeCompare(b.itemName.trim()))
+    //         const sortPreference = {
+    //             sortNumber: 1,
+    //             sortValue: "A-Z"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     } else if(sortCount == 1){
+    //         setSortName("Z-A")
+    //         setSortCount(2)
+    //         sorted.sort((a,b) => b.itemName.trim().localeCompare(a.itemName.trim()))
+    //         const sortPreference = {
+    //             sortNumber: 2,
+    //             sortValue: "Z-A"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     } else if(sortCount == 2){
+    //         setSortName("0-1")
+    //         setSortCount(3)
+    //         sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
+    //         const sortPreference = {
+    //             sortNumber: 3,
+    //             sortValue: "0-1"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     } else if(sortCount == 3){
+    //         setSortName("1-0")
+    //         setSortCount(4)
+    //         sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
+    //         const sortPreference = {
+    //             sortNumber: 4,
+    //             sortValue: "1-0"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     } else if(sortCount == 4){
+    //         setSortName("00-00-0000")
+    //         setSortCount(5)
+    //         sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
+    //         const sortPreference = {
+    //             sortNumber: 5,
+    //             sortValue: "00-00-0000"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     } else if(sortCount == 5){
+    //         setSortName("11-11-1111")
+    //         setSortCount(0)
+    //         sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
+    //         const sortPreference = {
+    //             sortNumber: 0,
+    //             sortValue: "11-11-1111"
+    //         }
+    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
+    //         setItemData(sorted)
+    //     }
+    // }
+
+    useEffect(() => {
+        const sortSaved = JSON.parse(localStorage.getItem("sortPreference"));
+        if (sortSaved) {
+            setSortName(sortSaved.sortValue);
+            setSortCount(sortSaved.sortNumber);
+            applySortToData(sortSaved.sortNumber);
+        }
+    }, []);
+
+    function applySortToData(sortType) {
+        const sorted = [...itemData];
 
         function getNumericPrice(priceStr) {
             const cleaned = parseFloat(priceStr?.replace(/[^0-9.]/g, ""));
             return isNaN(cleaned) ? -Infinity : cleaned;
         }
+        
         function parseDate(dateStr) {
             if (!dateStr || dateStr.toLowerCase() === "none") return -Infinity;
             const [day, month, year] = dateStr.split("-").map(Number);
@@ -693,68 +878,52 @@ function CRUD(){
             return isNaN(date.getTime()) ? -Infinity : date.getTime();
         }
 
-        if(sortCount == 0){
-            setSortName("A-Z")
-            setSortCount(1)
-            sorted.sort((a,b) => a.itemName.trim().localeCompare(b.itemName.trim()))
-            const sortPreference = {
-                sortNumber: 1,
-                sortValue: "A-Z"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
-        } else if(sortCount == 1){
-            setSortName("Z-A")
-            setSortCount(2)
-            sorted.sort((a,b) => b.itemName.trim().localeCompare(a.itemName.trim()))
-            const sortPreference = {
-                sortNumber: 2,
-                sortValue: "Z-A"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
-        } else if(sortCount == 2){
-            setSortName("0-1")
-            setSortCount(3)
-            sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
-            const sortPreference = {
-                sortNumber: 3,
-                sortValue: "0-1"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
-        } else if(sortCount == 3){
-            setSortName("1-0")
-            setSortCount(4)
-            sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
-            const sortPreference = {
-                sortNumber: 4,
-                sortValue: "1-0"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
-        } else if(sortCount == 4){
-            setSortName("00-00-0000")
-            setSortCount(5)
-            sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
-            const sortPreference = {
-                sortNumber: 5,
-                sortValue: "00-00-0000"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
-        } else if(sortCount == 5){
-            setSortName("11-11-1111")
-            setSortCount(0)
-            sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
-            const sortPreference = {
-                sortNumber: 0,
-                sortValue: "11-11-1111"
-            }
-            localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-            setItemData(sorted)
+        switch(sortType) {
+            case 1: // A-Z
+                sorted.sort((a, b) => a.itemName.trim().localeCompare(b.itemName.trim()));
+                break;
+            case 2: // Z-A
+                sorted.sort((a, b) => b.itemName.trim().localeCompare(a.itemName.trim()));
+                break;
+            case 3: // Price Low-High
+                sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
+                break;
+            case 4: // Price High-Low
+                sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
+                break;
+            case 5: // Date Old-New
+                sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
+                break;
+            case 0: // Date New-Old
+                sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
+                break;
         }
+
+        setItemData(sorted);
     }
+
+    function handleSortSelection(sortType, sortLabel) {
+        setSortName(sortLabel);
+        setSortCount(sortType);
+        
+        const sortPreference = {
+            sortNumber: sortType,
+            sortValue: sortLabel
+        };
+        localStorage.setItem("sortPreference", JSON.stringify(sortPreference));
+        
+        applySortToData(sortType);
+        setShowSortDropdown(false);
+    }
+
+    const sortOptions = [
+        { value: 1, label: "A-Z" },
+        { value: 2, label: "Z-A" },
+        { value: 3, label: "0-1" },
+        { value: 4, label: "1-0" },
+        { value: 5, label: "00-00-0000" },
+        { value: 0, label: "11-11-1111" }
+    ];
 
 
     // SYMMETRY
@@ -1070,13 +1239,45 @@ function CRUD(){
                 <div className="sortBtns">
                     <span className="userNameWrapper">[<span className="userName" title={username}>{username}</span>]</span>
                     <div className="statSort">
-                        <NButton btnID={"sortBtn"} clickData={sortBy} width={topBarButtonsWidth4} btnName={sortName}/>
+                        {/* <NButton btnID={"sortBtn"} clickData={sortBy} width={topBarButtonsWidth4} btnName={sortName}/> */}
+                        <div className="filterDropdownWrapper sortDropdownWrapper">
+                            <NButton 
+                                btnID={"sortBtn"}
+                                clickData={() => {
+                                    setShowSortDropdown(!showSortDropdown);
+                                    setShowYearDropdown(false);
+                                    setShowMonthDropdown(false);
+                                }}
+                                width={topBarButtonsWidth4}
+                                btnName={sortName}
+                            />
+                            {showSortDropdown && (
+                                <div className="dropdownMenuWrap">
+                                    <div className="dropdownMenu">
+                                        {sortOptions.map(option => (
+                                            <NButton 
+                                                width={"8.5em"}
+                                                key={option.value}
+                                                btnID={`sortOption${option.value}`}
+                                                clickData={() => handleSortSelection(option.value, option.label)}
+                                                btnName={option.label}
+                                            />
+                                        ))}
+                                    </div>
+                                    <div className="cornerBtnE11"></div>
+                                    <div className="cornerBtnE12"></div>
+                                    <div className="cornerBtnE13"></div>
+                                    <div className="cornerBtnE14"></div>
+                                </div>
+                            )}
+                        </div>
                         <div className="filterDropdownWrapper yearDropdownWrapper">
                             <NButton 
                                 btnID={"yearFilterBtn"}
                                 clickData={() => {
                                     setShowYearDropdown(!showYearDropdown);
                                     setShowMonthDropdown(false);
+                                    setShowSortDropdown(false);
                                 }}
                                 width={"120px"}
                                 btnName={filterYear === "All" ? "All Years" : filterYear}
@@ -1110,6 +1311,7 @@ function CRUD(){
                                 clickData={() => {
                                     setShowMonthDropdown(!showMonthDropdown);
                                     setShowYearDropdown(false);
+                                    setShowSortDropdown(false);
                                 }}
                                 width={"140px"}
                                 btnName={months.find(m => m.value === filterMonth)?.label || "All Months"}
@@ -1230,7 +1432,43 @@ function CRUD(){
                     <h1>Update Expense</h1>
                     <input tabIndex={0} autoComplete="off" id="updateModalNameData" type="text" />
                     <input tabIndex={0} autoComplete="off" id="updateModalPriceData" type="text" />
-                    <input tabIndex={0} autoComplete="off" id="updateModalDateData" type="text" />
+                    {/* <input tabIndex={0} autoComplete="off" id="updateModalDateData" type="text" /> */}
+                    <div style={{ position: 'relative', width: '100%' }}>
+                        <input 
+                            tabIndex={0} 
+                            autoComplete="off" 
+                            id="updateModalDateData" 
+                            type="text"
+                            ref={updateDateInputRef}
+                            readOnly
+                            style={{ 
+                                width: '100%',
+                                cursor: 'pointer'
+                            }}
+                            onClick={() => setShowUpdateDatePicker(!showUpdateDatePicker)}
+                        />
+                        {showUpdateDatePicker && (
+                            <div style={{ 
+                                position: 'absolute', 
+                                zIndex: 1000,
+                                marginTop: '0.5em',
+                                left: '50%',
+                                transform: 'translateX(-50%)'
+                            }}>
+                                <DateSelector 
+                                    onDateSelect={handleUpdateDateSelect}
+                                    initialDate={(() => {
+                                        const placeholder = document.getElementById("updateModalDateData")?.placeholder;
+                                        if (placeholder && placeholder !== "None") {
+                                            const [day, month, year] = placeholder.split('-').map(Number);
+                                            return new Date(year, month - 1, day);
+                                        }
+                                        return new Date();
+                                    })()}
+                                />
+                            </div>
+                        )}
+                    </div>
                     <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayUpdate", "modalUpdate")} width={"7em"} btnID={"cancelBtnUpdate"} btnName={"Cancel"} />
@@ -1255,7 +1493,49 @@ function CRUD(){
                     <h1>Add Expense</h1>
                     <textarea tabIndex={0} autoComplete="off" id="addModalNameData" type="text" placeholder="Name" onChange={addBtnCheck} />
                     <textarea tabIndex={0} autoComplete="off" id="addModalPriceData" type="text" placeholder="Price" onChange={addBtnCheck} />
-                    <textarea tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} />
+                    {/* <textarea tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} /> */}
+                    <div className="addDateWrap">
+                        <textarea 
+                            tabIndex={0} 
+                            autoComplete="off" 
+                            id="addModalDateData" 
+                            type="text" 
+                            placeholder="Date[DD-MM-YYYY]" 
+                            onChange={addBtnCheck}
+                            onClick={handleDateTextClick}
+                            ref={dateInputRef}
+                        />
+                        <div>
+                            <NButton 
+                                btnID="addDatePickerBtn"
+                                clickData={() => {
+                                    setDatePickerMode('add');
+                                    setShowDatePicker(!showDatePicker);
+                                }}
+                                width="3em"
+                                height="3em"
+                                btnName="+"
+                            />
+                        </div>
+                        {showDatePicker && (
+                            <div style={{ 
+                                position: 'absolute', 
+                                zIndex: 1000,
+                                marginTop: '0.5em',
+                                left: '11.5%',
+                                transform: 'translateY(57%)'
+                            }}>
+                                <DateSelector 
+                                    onDateSelect={handleAddDateSelect}
+                                    initialDate={editingDateIndex !== null && parseDateString(document.getElementById("addModalDateData")?.value || '')[editingDateIndex] ? (() => {
+                                        const dateStr = parseDateString(document.getElementById("addModalDateData").value)[editingDateIndex];
+                                        const [day, month, year] = dateStr.split('-').map(Number);
+                                        return new Date(year, month - 1, day);
+                                    })() : new Date()}
+                                />
+                            </div>
+                        )}
+                    </div>
                     <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayAdd", "modalAdd")} width={"7em"} btnID={"cancelBtnAdd"} btnName={"Cancel"} />

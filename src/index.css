@@ -2,15 +2,15 @@
     background-color: gray;
 }
 
-body::-webkit-scrollbar, .dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar, .dropdownMenu::-webkit-scrollbar {
+body::-webkit-scrollbar, .dataItems::-webkit-scrollbar, .infoData::-webkit-scrollbar, .deleteAllData::-webkit-scrollbar, textarea::-webkit-scrollbar, .dropdownMenu::-webkit-scrollbar, .year-selector-grid::-webkit-scrollbar {
   width: 4px;
   transition: .4s ease-in-out;
 }
-body::-webkit-scrollbar-track, .dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track, .dropdownMenu::-webkit-scrollbar-track {
+body::-webkit-scrollbar-track, .dataItems::-webkit-scrollbar-track, .infoData::-webkit-scrollbar-track, .deleteAllData::-webkit-scrollbar-track, textarea::-webkit-scrollbar-track, .dropdownMenu::-webkit-scrollbar-track, .year-selector-grid::-webkit-scrollbar-track {
   background-color: transparent;
   transition: .4s ease-in-out;
 }
-body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb, .dropdownMenu::-webkit-scrollbar-thumb {
+body::-webkit-scrollbar-thumb, .dataItems::-webkit-scrollbar-thumb, .infoData::-webkit-scrollbar-thumb, .deleteAllData::-webkit-scrollbar-thumb, textarea::-webkit-scrollbar-thumb, .dropdownMenu::-webkit-scrollbar-thumb, .year-selector-grid::-webkit-scrollbar-thumb {
   background-color: var(--color7); 
   transition: .4s ease-in-out;
   cursor: pointer;
@@ -263,7 +263,7 @@ textarea{
 }
 .modal{
   display: flex;
-  align-items: start;
+  align-items: center;
   justify-content: center;
   gap: 1em;
   flex-direction: column;
@@ -804,6 +804,13 @@ textarea{
   width: 100%;
 }
 
+.addDateWrap{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1em;
+  width: 306px;
+}
 
 .mainLanding{
   width: 100%;
@@ -943,6 +950,15 @@ textarea{
     width: 100%;
   }
 }
+@media screen and (max-width: 750px) {
+  .sortBtns{
+    flex-direction: column;
+  }
+  .statSort{
+    flex-wrap: wrap;
+    justify-content: end;
+  }
+}
 @media screen and (max-width: 700px) {
   .bottomBar, .bBtns{
     flex-direction: column;
@@ -972,9 +988,6 @@ textarea{
     width: auto;
     max-width: 450px;
   }
-  .sortBtns{
-    flex-direction: column;
-  }
   .topBarChart{
     flex-direction: column;
     justify-content: start;
@@ -984,6 +997,12 @@ textarea{
   .topBarBtnsChart{
     width: 100%;
     justify-content: start;
+  }
+  .addDateWrap{
+    width: auto;
+  }
+  .addDateWrap textarea{
+    min-width: auto;
   }
 }
 @media screen and (max-width: 450px) {
