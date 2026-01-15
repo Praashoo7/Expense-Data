@@ -37,6 +37,7 @@ function CRUD(){
     const [editingDateIndex, setEditingDateIndex] = useState(null);
     const dateInputRef = useRef(null);
     const updateDateInputRef = useRef(null);
+    const [activeDropdown, setActiveDropdown] = useState(null);
 
     const uid = localStorage.getItem("uid");
 
@@ -903,6 +904,7 @@ function CRUD(){
     }
 
     function handleSortSelection(sortType, sortLabel) {
+        setActiveDropdown(null);
         setSortName(sortLabel);
         setSortCount(sortType);
         
@@ -957,173 +959,384 @@ function CRUD(){
         keyboardModeRef.current = keyboardMode;
     }, [keyboardMode]);
 
+    // useEffect(() => {
+    //     const handleKeyDown = (event) => {
+    //     const updateModal = document.getElementById("modalOverlayUpdate");
+    //     const addModal = document.getElementById("modalOverlayAdd");
+    //     const deleteModal = document.getElementById("modalOverlayDelete");
+    //     const infoModal = document.getElementById("modalOverlayInfo");
+    //     const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
+    //     const logoutModal = document.getElementById("modalOverlayLogout");
+
+    //     const modalVisible =
+    //         updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
+
+    //     let focusScope = document;
+    //     if (updateModal?.style.display === "flex") {
+    //         focusScope = updateModal;
+    //     } else if (addModal?.style.display === "flex") {
+    //         focusScope = addModal;
+    //     } else if (deleteModal?.style.display === "flex") {
+    //         focusScope = deleteModal;
+    //     } else if (infoModal?.style.display === "flex") {
+    //         focusScope = infoModal;
+    //     } else if (deleteAllModal?.style.display === "flex") {
+    //         focusScope = deleteAllModal;
+    //     } else if (logoutModal?.style.display === "flex") {
+    //         focusScope = logoutModal;
+    //     }
+
+    //     const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
+
+    //     const activeElement = document.activeElement;
+    //     const isTyping =
+    //         activeElement &&
+    //         (activeElement.tagName === "INPUT" ||
+    //         activeElement.tagName === "TEXTAREA" ||
+    //         activeElement.isContentEditable);
+
+    //     if (!modalVisible && !isTyping) {
+    //         if (event.key.toLowerCase() === "a") {
+    //             const button = document.getElementById("btnAddOpen");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "p") {
+    //             const button = document.getElementById("btnDownloadImg");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "f") {
+    //             const button = document.getElementById("findBtn");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "s") {
+    //             const button = document.getElementById("sortBtn");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "t") {
+    //             const button = document.getElementById("themeBtn");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "i") {
+    //             const button = document.getElementById("infoBtn");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "l") {
+    //             const button = document.getElementById("btnLogoutOpen");
+    //             if (button) button.click();
+    //         }
+    //         if (event.key.toLowerCase() === "o" && statsPress.current === true) {
+    //             const button = document.getElementById("statsBtn");
+    //             if (button) button.click();
+    //         }
+    //         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
+    //             event.preventDefault();
+    //             const button = document.getElementById("btnDeleteAllOpen");
+    //             if (button) button.click();
+    //         }
+    //         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+    //             event.preventDefault();
+    //             const inputFocus = document.getElementById("findInput");
+    //             if (inputFocus) inputFocus.focus();
+    //         }
+    //     }
+
+    //     if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
+    //         if (updateModal?.style.display === "flex") {
+    //         const button = document.getElementById("btnModalUpdate");
+    //         if (button) button.click();
+    //         } else if (addModal?.style.display === "flex") {
+    //         const button = document.getElementById("btnModalAdd");
+    //         if (button) button.click();
+    //         } else if (deleteModal?.style.display === "flex") {
+    //         const button = document.getElementById("btnModalDelete");
+    //         if (button) button.click();
+    //         } else if (deleteAllModal?.style.display === "flex") {
+    //         const button = document.getElementById("btnModalDeleteAll");
+    //         if (button) button.click();
+    //         } else if (logoutModal?.style.display === "flex") {
+    //         const button = document.getElementById("btnModalLogout");
+    //         if (button) button.click();
+    //         }
+    //     }
+
+    //     if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
+    //         event.preventDefault();
+    //         setKeyboardMode(true);
+    //         const focusable = getFocusable();
+    //         const currentIndex = focusable.indexOf(document.activeElement);
+    //         const nextIndex = (currentIndex + 1) % focusable.length;
+    //         focusable[nextIndex]?.focus();
+    //     }
+
+    //     if (["ArrowUp"].includes(event.key) || (["ArrowLeft"].includes(event.key) && (!isTyping))) {
+    //         event.preventDefault();
+    //         setKeyboardMode(true);
+    //         const focusable = getFocusable();
+    //         const currentIndex = focusable.indexOf(document.activeElement);
+    //         const prevIndex = currentIndex === 0 ? focusable.length - 1 : currentIndex - 1;
+    //         focusable[prevIndex]?.focus();
+    //     }
+
+    //     if (event.key === "Enter" && !event.shiftKey && keyboardModeRef.current) {
+    //         event.preventDefault();
+    //         const el = document.activeElement;
+    //         if (el) {
+    //         el.classList.add("key-press-active");
+    //         setTimeout(() => {
+    //             el.classList.remove("key-press-active");
+    //         }, 100);
+
+    //         ["mousedown", "mouseup", "click"].forEach((type) => {
+    //             const evt = new MouseEvent(type, {
+    //             bubbles: true,
+    //             cancelable: true,
+    //             view: window,
+    //             });
+    //             el.dispatchEvent(evt);
+    //         });
+    //         }
+    //     }
+
+    //     if (event.key === "Escape") {
+    //         setKeyboardMode(false);
+    //         document.activeElement.blur();
+
+    //         if (updateModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnUpdate");
+    //         if (button) button.click();
+    //         } else if (addModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnAdd");
+    //         if (button) button.click();
+    //         } else if (deleteModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnDelete");
+    //         if (button) button.click();
+    //         } else if (infoModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnInfo");
+    //         if (button) button.click();
+    //         } else if (deleteAllModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnDeleteAll");
+    //         if (button) button.click();
+    //         } else if (logoutModal?.style.display === "flex") {
+    //         const button = document.getElementById("cancelBtnLogout");
+    //         if (button) button.click();
+    //         }
+    //     }
+    //     };
+
+    //     document.addEventListener("keydown", handleKeyDown);
+    //     return () => document.removeEventListener("keydown", handleKeyDown);
+    // }, []);
+
     useEffect(() => {
         const handleKeyDown = (event) => {
-        const updateModal = document.getElementById("modalOverlayUpdate");
-        const addModal = document.getElementById("modalOverlayAdd");
-        const deleteModal = document.getElementById("modalOverlayDelete");
-        const infoModal = document.getElementById("modalOverlayInfo");
-        const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
-        const logoutModal = document.getElementById("modalOverlayLogout");
+            const updateModal = document.getElementById("modalOverlayUpdate");
+            const addModal = document.getElementById("modalOverlayAdd");
+            const deleteModal = document.getElementById("modalOverlayDelete");
+            const infoModal = document.getElementById("modalOverlayInfo");
+            const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
+            const logoutModal = document.getElementById("modalOverlayLogout");
 
-        const modalVisible =
-            updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
+            const modalVisible =
+                updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
 
-        let focusScope = document;
-        if (updateModal?.style.display === "flex") {
-            focusScope = updateModal;
-        } else if (addModal?.style.display === "flex") {
-            focusScope = addModal;
-        } else if (deleteModal?.style.display === "flex") {
-            focusScope = deleteModal;
-        } else if (infoModal?.style.display === "flex") {
-            focusScope = infoModal;
-        } else if (deleteAllModal?.style.display === "flex") {
-            focusScope = deleteAllModal;
-        } else if (logoutModal?.style.display === "flex") {
-            focusScope = logoutModal;
-        }
-
-        const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
-
-        const activeElement = document.activeElement;
-        const isTyping =
-            activeElement &&
-            (activeElement.tagName === "INPUT" ||
-            activeElement.tagName === "TEXTAREA" ||
-            activeElement.isContentEditable);
-
-        if (!modalVisible && !isTyping) {
-            if (event.key.toLowerCase() === "a") {
-                const button = document.getElementById("btnAddOpen");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "p") {
-                const button = document.getElementById("btnDownloadImg");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "f") {
-                const button = document.getElementById("findBtn");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "s") {
-                const button = document.getElementById("sortBtn");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "t") {
-                const button = document.getElementById("themeBtn");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "i") {
-                const button = document.getElementById("infoBtn");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "l") {
-                const button = document.getElementById("btnLogoutOpen");
-                if (button) button.click();
-            }
-            if (event.key.toLowerCase() === "o" && statsPress.current === true) {
-                const button = document.getElementById("statsBtn");
-                if (button) button.click();
-            }
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
-                event.preventDefault();
-                const button = document.getElementById("btnDeleteAllOpen");
-                if (button) button.click();
-            }
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-                event.preventDefault();
-                const inputFocus = document.getElementById("findInput");
-                if (inputFocus) inputFocus.focus();
-            }
-        }
-
-        if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
+            let focusScope = document;
             if (updateModal?.style.display === "flex") {
-            const button = document.getElementById("btnModalUpdate");
-            if (button) button.click();
+                focusScope = updateModal;
             } else if (addModal?.style.display === "flex") {
-            const button = document.getElementById("btnModalAdd");
-            if (button) button.click();
+                focusScope = addModal;
             } else if (deleteModal?.style.display === "flex") {
-            const button = document.getElementById("btnModalDelete");
-            if (button) button.click();
-            } else if (deleteAllModal?.style.display === "flex") {
-            const button = document.getElementById("btnModalDeleteAll");
-            if (button) button.click();
-            } else if (logoutModal?.style.display === "flex") {
-            const button = document.getElementById("btnModalLogout");
-            if (button) button.click();
-            }
-        }
-
-        if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
-            event.preventDefault();
-            setKeyboardMode(true);
-            const focusable = getFocusable();
-            const currentIndex = focusable.indexOf(document.activeElement);
-            const nextIndex = (currentIndex + 1) % focusable.length;
-            focusable[nextIndex]?.focus();
-        }
-
-        if (["ArrowUp"].includes(event.key) || (["ArrowLeft"].includes(event.key) && (!isTyping))) {
-            event.preventDefault();
-            setKeyboardMode(true);
-            const focusable = getFocusable();
-            const currentIndex = focusable.indexOf(document.activeElement);
-            const prevIndex = currentIndex === 0 ? focusable.length - 1 : currentIndex - 1;
-            focusable[prevIndex]?.focus();
-        }
-
-        if (event.key === "Enter" && !event.shiftKey && keyboardModeRef.current) {
-            event.preventDefault();
-            const el = document.activeElement;
-            if (el) {
-            el.classList.add("key-press-active");
-            setTimeout(() => {
-                el.classList.remove("key-press-active");
-            }, 100);
-
-            ["mousedown", "mouseup", "click"].forEach((type) => {
-                const evt = new MouseEvent(type, {
-                bubbles: true,
-                cancelable: true,
-                view: window,
-                });
-                el.dispatchEvent(evt);
-            });
-            }
-        }
-
-        if (event.key === "Escape") {
-            setKeyboardMode(false);
-            document.activeElement.blur();
-
-            if (updateModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnUpdate");
-            if (button) button.click();
-            } else if (addModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnAdd");
-            if (button) button.click();
-            } else if (deleteModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnDelete");
-            if (button) button.click();
+                focusScope = deleteModal;
             } else if (infoModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnInfo");
-            if (button) button.click();
+                focusScope = infoModal;
             } else if (deleteAllModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnDeleteAll");
-            if (button) button.click();
+                focusScope = deleteAllModal;
             } else if (logoutModal?.style.display === "flex") {
-            const button = document.getElementById("cancelBtnLogout");
-            if (button) button.click();
+                focusScope = logoutModal;
+            } else if (activeDropdown === 'sort' && showSortDropdown) {
+                focusScope = document.querySelector('.sortDropdownWrapper .dropdownMenu');
+            } else if (activeDropdown === 'year' && showYearDropdown) {
+                focusScope = document.querySelector('.yearDropdownWrapper .dropdownMenu');
+            } else if (activeDropdown === 'month' && showMonthDropdown) {
+                focusScope = document.querySelector('.monthDropdownWrapper .dropdownMenu');
             }
-        }
+
+            const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
+
+            const activeElement = document.activeElement;
+            const isTyping =
+                activeElement &&
+                (activeElement.tagName === "INPUT" ||
+                activeElement.tagName === "TEXTAREA" ||
+                activeElement.isContentEditable);
+
+            if (!modalVisible && !isTyping) {
+                if (event.key.toLowerCase() === "a") {
+                    const button = document.getElementById("btnAddOpen");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "p") {
+                    const button = document.getElementById("btnDownloadImg");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "f") {
+                    const button = document.getElementById("findBtn");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "s") {
+                    event.preventDefault();
+                    const button = document.getElementById("sortBtn");
+                    if (button) {
+                        button.click();
+                        setActiveDropdown('sort');
+                        setTimeout(() => {
+                            const firstOption = document.querySelector('.sortDropdownWrapper .dropdownMenu [tabindex="0"]');
+                            if (firstOption) firstOption.focus();
+                        }, 50);
+                    }
+                }
+                if (event.key.toLowerCase() === "m") {
+                    event.preventDefault();
+                    const button = document.getElementById("monthFilterBtn");
+                    if (button) {
+                        button.click();
+                        setActiveDropdown('month');
+                        setTimeout(() => {
+                            const firstOption = document.querySelector('.monthDropdownWrapper .dropdownMenu [tabindex="0"]');
+                            if (firstOption) firstOption.focus();
+                        }, 50);
+                    }
+                }
+                if (event.key.toLowerCase() === "y") {
+                    event.preventDefault();
+                    const button = document.getElementById("yearFilterBtn");
+                    if (button) {
+                        button.click();
+                        setActiveDropdown('year');
+                        setTimeout(() => {
+                            const firstOption = document.querySelector('.yearDropdownWrapper .dropdownMenu [tabindex="0"]');
+                            if (firstOption) firstOption.focus();
+                        }, 50);
+                    }
+                }
+                if (event.key.toLowerCase() === "t") {
+                    const button = document.getElementById("themeBtn");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "i") {
+                    const button = document.getElementById("infoBtn");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "l") {
+                    const button = document.getElementById("btnLogoutOpen");
+                    if (button) button.click();
+                }
+                if (event.key.toLowerCase() === "o" && statsPress.current === true) {
+                    const button = document.getElementById("statsBtn");
+                    if (button) button.click();
+                }
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
+                    event.preventDefault();
+                    const button = document.getElementById("btnDeleteAllOpen");
+                    if (button) button.click();
+                }
+                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+                    event.preventDefault();
+                    const inputFocus = document.getElementById("findInput");
+                    if (inputFocus) inputFocus.focus();
+                }
+            }
+
+            if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
+                if (updateModal?.style.display === "flex") {
+                    const button = document.getElementById("btnModalUpdate");
+                    if (button) button.click();
+                } else if (addModal?.style.display === "flex") {
+                    const button = document.getElementById("btnModalAdd");
+                    if (button) button.click();
+                } else if (deleteModal?.style.display === "flex") {
+                    const button = document.getElementById("btnModalDelete");
+                    if (button) button.click();
+                } else if (deleteAllModal?.style.display === "flex") {
+                    const button = document.getElementById("btnModalDeleteAll");
+                    if (button) button.click();
+                } else if (logoutModal?.style.display === "flex") {
+                    const button = document.getElementById("btnModalLogout");
+                    if (button) button.click();
+                }
+            }
+
+            if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
+                event.preventDefault();
+                setKeyboardMode(true);
+                const focusable = getFocusable();
+                const currentIndex = focusable.indexOf(document.activeElement);
+                const nextIndex = (currentIndex + 1) % focusable.length;
+                focusable[nextIndex]?.focus();
+            }
+
+            if (["ArrowUp"].includes(event.key) || (["ArrowLeft"].includes(event.key) && (!isTyping))) {
+                event.preventDefault();
+                setKeyboardMode(true);
+                const focusable = getFocusable();
+                const currentIndex = focusable.indexOf(document.activeElement);
+                const prevIndex = currentIndex === 0 ? focusable.length - 1 : currentIndex - 1;
+                focusable[prevIndex]?.focus();
+            }
+
+            if (event.key === "Enter" && !event.shiftKey && keyboardModeRef.current) {
+                event.preventDefault();
+                const el = document.activeElement;
+                if (el) {
+                    el.classList.add("key-press-active");
+                    setTimeout(() => {
+                        el.classList.remove("key-press-active");
+                    }, 100);
+
+                    ["mousedown", "mouseup", "click"].forEach((type) => {
+                        const evt = new MouseEvent(type, {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window,
+                        });
+                        el.dispatchEvent(evt);
+                    });
+                }
+            }
+
+            if (event.key === "Escape") {
+                setKeyboardMode(false);
+                document.activeElement.blur();
+
+                if (showSortDropdown || showYearDropdown || showMonthDropdown) {
+                    setShowSortDropdown(false);
+                    setShowYearDropdown(false);
+                    setShowMonthDropdown(false);
+                    setActiveDropdown(null);
+                } else if (updateModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnUpdate");
+                    if (button) button.click();
+                } else if (addModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnAdd");
+                    if (button) button.click();
+                } else if (deleteModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnDelete");
+                    if (button) button.click();
+                } else if (infoModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnInfo");
+                    if (button) button.click();
+                } else if (deleteAllModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnDeleteAll");
+                    if (button) button.click();
+                } else if (logoutModal?.style.display === "flex") {
+                    const button = document.getElementById("cancelBtnLogout");
+                    if (button) button.click();
+                }
+            }
         };
 
         document.addEventListener("keydown", handleKeyDown);
         return () => document.removeEventListener("keydown", handleKeyDown);
-        }, []);
+    }, [showSortDropdown, showYearDropdown, showMonthDropdown, activeDropdown]);
 
     const navigate = useNavigate();
     const handleLogout = async () => {
@@ -1278,6 +1491,7 @@ function CRUD(){
                                     setShowYearDropdown(!showYearDropdown);
                                     setShowMonthDropdown(false);
                                     setShowSortDropdown(false);
+                                    setActiveDropdown(null);
                                 }}
                                 width={"120px"}
                                 btnName={filterYear === "All" ? "All Years" : filterYear}
@@ -1312,6 +1526,7 @@ function CRUD(){
                                     setShowMonthDropdown(!showMonthDropdown);
                                     setShowYearDropdown(false);
                                     setShowSortDropdown(false);
+                                    setActiveDropdown(null);
                                 }}
                                 width={"140px"}
                                 btnName={months.find(m => m.value === filterMonth)?.label || "All Months"}
@@ -1620,6 +1835,8 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>m</span> : Toggle "Month" Filter</li>
+                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>y</span> : Toggle "Year" Filter</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>o</span> : Open Stats</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>p</span> : Save Image</li>
@@ -1629,7 +1846,7 @@ function CRUD(){
                             <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
                         </div>
                         <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
-                        <li style={{ marginTop: "0.5em"}}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025</li>
+                        <li style={{ marginTop: "0.5em"}}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025[For Dates just click the "+" button to add more comma seperated dates and click on a specific date to update it.]</li>
                         <li style={{ marginTop: "0.5em"}}>If you want to assign same date to multiple expenses while adding, Then just write the date ending it with 3 dots["..."]. After doing this the same date will be assigned to all newly added items at once. Example Usage : 01-12-2025...</li>
                         <li style={{ marginTop: "0.5em", marginBottom: "1em" }}>This design is mostly inspired by the NFS Most Wanted[2005] video game menu, Which I recreated once using HTML/CSS for fun and I always wanted to implement it in a full scale site! So here we are. You can checkout the NFS MenuCard recreation <span style={{ textDecoration: "underline", cursor: "pointer" }} onClick={handleRedirect}>here.</span></li>
                         <NButton clickData={() => window.open("https://github.com/Praashoo7/Expense-Data", "_blank")} width={"100%"} height={"2.5em"} btnName={"Star on Github"} />
