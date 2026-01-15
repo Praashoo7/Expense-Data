@@ -1,6 +1,7 @@
 import NButton from "./NButton"
 import { useNavigate } from "react-router";
 import { useState, useEffect } from "react";
+import ThemeToggle from "./ThemeToggle";
 
 function Landing(){
 
@@ -358,6 +359,7 @@ function Landing(){
             </div>
         </div>
     </div>
+    <ThemeToggle btnWidth={"0"} displayMode={"none"} />
     </>
     )
 }

@@ -550,6 +550,9 @@ textarea{
   gap: 1em;
   flex-wrap: wrap;
 }
+#modalLogout .modalBtns{
+  justify-content: center;
+}
 
 .infoData, .deleteAllData{
   padding: 2em;
