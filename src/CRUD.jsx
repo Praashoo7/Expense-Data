@@ -1461,7 +1461,8 @@ function CRUD(){
                                     setShowYearDropdown(false);
                                     setShowMonthDropdown(false);
                                 }}
-                                width={topBarButtonsWidth4}
+                                // width={topBarButtonsWidth4}
+                                width={"7.5em"}
                                 btnName={sortName}
                             />
                             {showSortDropdown && (
@@ -1555,7 +1556,10 @@ function CRUD(){
                                 </div>
                             )}
                         </div>
-                        <NButton btnID={"statsBtn"} clickData={handleStats} width={topBarButtonsWidth4} height={"2.5em"} btnName={"Stats"}/>
+                        <NButton btnID={"statsBtn"} clickData={handleStats} 
+                            // width={topBarButtonsWidth4} 
+                            width={"4.5em"} height={"2.5em"} btnName={"Stats"}
+                        />
                         {/* {(filterYear !== "All" || filterMonth !== "All") && (
                             <NButton 
                                 btnID={"resetFilterBtn"}
