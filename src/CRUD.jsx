@@ -8,11 +8,121 @@ import { signOut } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
 import debounce from "lodash/debounce";
 import DateSelector from "./NCalender";
+import { useVirtualizer } from "@tanstack/react-virtual"
+
+const CORNER_IDS = ["corner1", "corner2", "corner3", "corner4"];
+
+function forEachCorner(overlaySelector, callback) {
+    CORNER_IDS.forEach((cornerId, index) => {
+        const el = document.querySelector(`${overlaySelector} #menuWrapper #${cornerId}`);
+        if (el) callback(el, index, cornerId);
+    });
+}
+
+function calculateTotal(data) {
+    let total = 0;
+    data.forEach((item) => {
+        let itemValue = 0;
+        if (item.itemPrice === "None") { itemValue = "0$"; }
+        else { itemValue = item.itemPrice; }
+        const allExpenses = parseFloat(itemValue.replace("$", ""));
+        total += allExpenses;
+    });
+    return `${total}$`;
+}
+
+function isValidPriceToken(token) {
+    if (typeof token === "number") return true;
+    if (typeof token === "string") return /^-?\d+(\.\d+)?$/.test(token.trim());
+    return false;
+}
+
+function isValidNewDateToken(str) {
+    const regex = /^([0-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}$/;
+    if (!regex.test(str)) return false;
+    const [day, month, year] = str.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    return (
+        date.getFullYear() === year &&
+        date.getMonth() === month - 1 &&
+        date.getDate() === day
+    );
+}
+
+function toggleDeleteLoading(isLoading) {
+    document.getElementById("deleteBtnWrap").style.pointerEvents = isLoading ? "none" : "auto";
+    document.getElementById("deleteBtn").style.display = isLoading ? "none" : "block";
+    document.getElementById("text-loader-delete").style.display = isLoading ? "block" : "none";
+}
+
+function computeTopBarWidths(width) {
+    if (width <= 450) {
+        return { w1: "6em", w2: "6em", w3: "7.75em", w4: "100%" };
+    }
+    return { w1: "2.75em", w2: "5em", w3: "8.75em", w4: "7.75em" };
+}
+
+const keyBadgeStyle = { padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" };
+
+const SHORTCUTS_LIST = [
+    { key: "i", label: "Open Info" },
+    { key: "t", label: "Toggle Theme" },
+    { key: "f", label: 'Toggle "Find By"' },
+    { key: "s", label: 'Toggle "Sort By"' },
+    { key: "m", label: 'Toggle "Month" Filter' },
+    { key: "y", label: 'Toggle "Year" Filter' },
+    { key: "o", label: "Open Stats" },
+    { key: "a", label: "Open Add Expense" },
+    { key: "p", label: "Save Image" },
+    { key: "l", label: "Logout" },
+    { key: "ctrl + k", label: "Find" },
+    { key: "ctrl + d", label: "Delete All" },
+    { key: "ESC", label: "Back" },
+];
+
+const monthsList = [
+    { value: "All", label: "All Months" },
+    { value: "01", label: "January" },
+    { value: "02", label: "February" },
+    { value: "03", label: "March" },
+    { value: "04", label: "April" },
+    { value: "05", label: "May" },
+    { value: "06", label: "June" },
+    { value: "07", label: "July" },
+    { value: "08", label: "August" },
+    { value: "09", label: "September" },
+    { value: "10", label: "October" },
+    { value: "11", label: "November" },
+    { value: "12", label: "December" }
+];
+
+const sortOptions = [
+    { value: 1, label: "A-Z" },
+    { value: 2, label: "Z-A" },
+    { value: 3, label: "0-1" },
+    { value: 4, label: "1-0" },
+    { value: 5, label: "00-00-0000" },
+    { value: 0, label: "11-11-1111" }
+];
+
+function useOutsideClick(selectors, onOutside) {
+    const callbackRef = useRef(onOutside);
+    callbackRef.current = onOutside;
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            const isInside = selectors.some(sel => event.target.closest(sel));
+            if (!isInside) callbackRef.current();
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+}
 
 function CRUD(){
 
     let [originalData , setOriginalData] = useState([]);
-
     const[itemData, setItemData] = useState([])
     const [sortCount, setSortCount] = useState(0)
     const [sortName, setSortName] = useState("Sort By")
@@ -38,8 +148,9 @@ function CRUD(){
     const dateInputRef = useRef(null);
     const updateDateInputRef = useRef(null);
     const [activeDropdown, setActiveDropdown] = useState(null);
-
+    const listParentRef = useRef(null);
     const uid = localStorage.getItem("uid");
+    const lastSearchValueRef = useRef("");
 
     useEffect(() => {
         if (!uid) return;
@@ -103,20 +214,19 @@ function CRUD(){
     function searchBy(){
         if(searchCount == 0){ setSearchName("Price"); setSearchCount(1)}
         else if(searchCount == 1){ setSearchName("Date"); setSearchCount(2) }
-        // else if(searchCount == 2){ setSearchName("Month"); setSearchCount(3) }
-        // else if(searchCount == 3){ setSearchName("Year"); setSearchCount(4) }
         else if(searchCount == 2){ setSearchName("Name"); setSearchCount(0) }
     }
 
     const searchedData = (value) => {
+        lastSearchValueRef.current = value;
 
         if(!value.trim() && itemData.length != 0){
-            setSearchData(originalData)
+            setSearchData(filteredByDate)
             setMessageOpacity("0")
             return
         }
 
-        const filteredData = originalData.filter((item) => {
+        const filteredData = filteredByDate.filter((item) => {
             if(searchName == "Name" || searchName == "Find By"){
                 return item.itemName.toLowerCase().includes(value.toLowerCase())
             }
@@ -138,28 +248,6 @@ function CRUD(){
         if (itemData.length == 0) { setMessageOpacity("1"); }
         else { setMessageOpacity("0"); }
     }, [itemData])
-
-
-    // PARSE-DATE
-
-    function parseDate(date){
-        const [day, month, year] = date.split("-")
-        return new Date(`${year}-${month}-${day}`)
-    }
-
-
-    // TOTAL
-
-    function totalExpense(){
-        let total = 0
-        itemData.forEach((item) => {
-            let itemValue = 0
-            if(item.itemPrice == "None") { itemValue = "0$" } else { itemValue = item.itemPrice }
-            const allExpenses = parseFloat(itemValue.replace("$",""))
-            total += allExpenses
-        })
-        return `${total}$`
-    }
 
 
     // SORTBY-YEAR-MONTH
@@ -197,37 +285,20 @@ function CRUD(){
         return filtered;
     }, [itemData, filterYear, filterMonth]);
 
-    const months = [
-        { value: "All", label: "All Months" },
-        { value: "01", label: "January" },
-        { value: "02", label: "February" },
-        { value: "03", label: "March" },
-        { value: "04", label: "April" },
-        { value: "05", label: "May" },
-        { value: "06", label: "June" },
-        { value: "07", label: "July" },
-        { value: "08", label: "August" },
-        { value: "09", label: "September" },
-        { value: "10", label: "October" },
-        { value: "11", label: "November" },
-        { value: "12", label: "December" }
-    ];
-
-    const resetFilters = () => {
-        setFilterYear("All");
-        setFilterMonth("All");
-    };
-
     useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!event.target.closest('.yearDropdownWrapper') && !event.target.closest('.monthDropdownWrapper')) {
-                setShowYearDropdown(false);
-                setShowMonthDropdown(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+        if (searching) {
+            searchedData(lastSearchValueRef.current);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredByDate]);
+
+    const months = monthsList;
+
+    useOutsideClick(['.yearDropdownWrapper', '.monthDropdownWrapper', '.sortDropdownWrapper'], () => {
+        setShowYearDropdown(false);
+        setShowMonthDropdown(false);
+        setShowSortDropdown(false);
+    });
 
 
     // CUSTOM-DATE-PICKER
@@ -291,32 +362,58 @@ function CRUD(){
         if (clickedDateIndex !== -1) {
             setDatePickerMode('edit');
             setEditingDateIndex(clickedDateIndex);
-
-            const clickedDate = dates[clickedDateIndex];
-            const [day, month, year] = clickedDate.split('-').map(Number);
-            const initialDate = new Date(year, month - 1, day);
-            
             setShowDatePicker(true);
         }
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (!event.target.closest('.date-selector-container') && 
-                !event.target.closest('#addModalDateData') &&
-                !event.target.closest('#addDatePickerBtn') &&
-                !event.target.closest('#updateDatePickerBtn')) {
-                setShowDatePicker(false);
-                setShowUpdateDatePicker(false);
-            }
-        };
-        
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+    useOutsideClick(['.date-selector-container', '#addModalDateData', '#addDatePickerBtn', '#updateDatePickerBtn'], () => {
+        setShowDatePicker(false);
+        setShowUpdateDatePicker(false);
+    });
 
 
     // OPEN-MODAL
+
+    function populateUpdateModal(index){
+        itemData.map((item, itemIndex) => {
+            if(itemIndex == index){
+                document.getElementById(`updateModalNameData`).value = ""
+                document.getElementById(`updateModalPriceData`).value = ""
+                document.getElementById(`updateModalDateData`).value = ""
+                document.getElementById(`updateModalNameData`).placeholder = item.itemName.trim();
+                document.getElementById(`updateModalNameData`).setAttribute("data-key", itemIndex)
+                document.getElementById(`updateModalPriceData`).placeholder = item.itemPrice.replace("$","").trim();
+                document.getElementById(`updateModalDateData`).placeholder = item.itemDate
+            }
+        })
+    }
+
+    function resetAddModal(){
+        document.getElementById(`addModalNameData`).value = ""
+        document.getElementById(`addModalPriceData`).value = ""
+        document.getElementById(`addModalDateData`).value = ""
+    }
+
+    function populateDeleteModal(index){
+        document.getElementById("btnModalDelete").setAttribute("indexKey", index)
+        itemData.map((item, itemIndex) => {
+            if(itemIndex == index){
+                document.getElementById("namePText").textContent = "Name : " + item.itemName
+                document.getElementById("pricePText").textContent = "Price : " + item.itemPrice
+                document.getElementById("datePText").textContent = "Date : " + item.itemDate
+            }
+        })
+    }
+
+    function prepareDeleteAllModal(){
+        setDeleteSelected(false)
+        document.getElementById("deleteTitle").innerHTML = "Delete All?"
+        if(itemData.length == 0){
+            document.getElementById("noDataDelete").style.display = "block"
+        } else {
+            document.getElementById("noDataDelete").style.display = "none"
+        }
+    }
 
     function openModal(index, modalName){
         setShowDatePicker(false);
@@ -324,63 +421,34 @@ function CRUD(){
         setDatePickerMode('add');
         setEditingDateIndex(null);
         setError("")
+
+        const overlaySelector = `#modalOverlay${modalName}`;
+
         document.getElementById(`modal${modalName}`).style.display = "flex"
         document.getElementById(`modalOverlay${modalName}`).style.display = "flex"
         document.getElementById(`wrapper`).style.filter = "blur(5px)"
         document.getElementById("btnModalAdd").style.opacity = 0.5
         document.getElementById("btnModalAdd").style.pointerEvents = "none"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.animation = "none"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.animation = "none"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.animation = "none"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.animation = "none"
+
+        forEachCorner(overlaySelector, (el) => { el.style.animation = "none" })
+
         setTimeout(() => {
-            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.opacity = 1
-            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.opacity = 1
-            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.opacity = 1
-            document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.opacity = 1
+            forEachCorner(overlaySelector, (el) => { el.style.opacity = 1 })
         }, 100);
         setTimeout(() => {
             document.getElementById(`modal${modalName}`).style.opacity = "1"
         }, 300);
 
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner1`).style.animation = "0.35s openCorner1 linear forwards"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner2`).style.animation = "0.35s openCorner2 linear forwards"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner3`).style.animation = "0.35s openCorner3 linear forwards"
-        document.querySelector(`#modalOverlay${modalName} #menuWrapper #corner4`).style.animation = "0.35s openCorner4 linear forwards"
+        forEachCorner(overlaySelector, (el, i) => { el.style.animation = `0.35s openCorner${i + 1} linear forwards` })
 
         if(modalName == "Update"){
-            itemData.map((item, itemIndex) => {
-                if(itemIndex == index){
-                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).value = ""
-                    document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).value = ""
-                    document.getElementById(`${modalName.toLowerCase()}ModalDateData`).value = ""
-                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).placeholder = item.itemName.trim();
-                    document.getElementById(`${modalName.toLowerCase()}ModalNameData`).setAttribute("data-key", itemIndex)
-                    document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).placeholder = item.itemPrice.replace("$","").trim();
-                    document.getElementById(`${modalName.toLowerCase()}ModalDateData`).placeholder = item.itemDate
-                }
-            })
+            populateUpdateModal(index);
         } else if(modalName == "Add"){
-            document.getElementById(`${modalName.toLowerCase()}ModalNameData`).value = ""
-            document.getElementById(`${modalName.toLowerCase()}ModalPriceData`).value = ""
-            document.getElementById(`${modalName.toLowerCase()}ModalDateData`).value = ""
+            resetAddModal();
         } else if(modalName == "Delete"){
-            document.getElementById("btnModalDelete").setAttribute("indexKey", index)
-            itemData.map((item, itemIndex) => {
-            if(itemIndex == index){
-                document.getElementById("namePText").textContent = "Name : " + item.itemName
-                document.getElementById("pricePText").textContent = "Price : " + item.itemPrice
-                document.getElementById("datePText").textContent = "Date : " + item.itemDate
-            }
-            })
+            populateDeleteModal(index);
         } else if(modalName == "DeleteAll"){
-            setDeleteSelected(false)
-            document.getElementById("deleteTitle").innerHTML = "Delete All?"
-            if(itemData.length == 0){
-                document.getElementById("noDataDelete").style.display = "block"
-            } else {
-                document.getElementById("noDataDelete").style.display = "none"
-            }
+            prepareDeleteAllModal();
         }
     }
 
@@ -395,33 +463,22 @@ function CRUD(){
         });
         selectedItemsListRef.current = [];
 
-        document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
-        document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
-        document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
-        document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "none"
-        document.querySelector(`#${value} #menuWrapper #corner1`).style.opacity = 1
-        document.querySelector(`#${value} #menuWrapper #corner2`).style.opacity = 1
-        document.querySelector(`#${value} #menuWrapper #corner3`).style.opacity = 1
-        document.querySelector(`#${value} #menuWrapper #corner4`).style.opacity = 1
+        const overlaySelector = `#${value}`;
+
+        forEachCorner(overlaySelector, (el) => { el.style.animation = "none" })
+        forEachCorner(overlaySelector, (el) => { el.style.opacity = 1 })
+
         document.getElementById(value1).style.opacity = "0"
         setTimeout(() => {
             document.getElementById(value).style.display = "none"
             document.getElementById(value1).style.display = "none"
-            document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "none"
-            document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "none"
-            document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "none"
-            document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "none"
+            forEachCorner(overlaySelector, (el) => { el.style.animation = "none" })
         }, 300);
-        document.querySelector(`#${value} #menuWrapper #corner1`).style.animation = "0.35s closeCorner1 linear forwards"
-        document.querySelector(`#${value} #menuWrapper #corner2`).style.animation = "0.35s closeCorner2 linear forwards"
-        document.querySelector(`#${value} #menuWrapper #corner3`).style.animation = "0.35s closeCorner3 linear forwards"
-        document.querySelector(`#${value} #menuWrapper #corner4`).style.animation = "0.35s closeCorner4 linear forwards"
+
+        forEachCorner(overlaySelector, (el, i) => { el.style.animation = `0.35s closeCorner${i + 1} linear forwards` })
 
         setTimeout(() => {
-            document.querySelector(`#${value} #menuWrapper #corner1`).style.opacity = 0
-            document.querySelector(`#${value} #menuWrapper #corner2`).style.opacity = 0
-            document.querySelector(`#${value} #menuWrapper #corner3`).style.opacity = 0
-            document.querySelector(`#${value} #menuWrapper #corner4`).style.opacity = 0
+            forEachCorner(overlaySelector, (el) => { el.style.opacity = 0 })
             document.getElementById("wrapper").style.filter = "blur(0px)"
         }, 300);
     }
@@ -429,23 +486,14 @@ function CRUD(){
 
     // DELETE-EXPENSE
 
-    // function deleteExpense(){
-    //     let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
-    //     setItemData(itemData.filter((newData, index) => index != value))
-    //     closeModal("modalOverlayDelete", "modalDelete")
-    // }
     function deleteExpense(){
-        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
-        document.getElementById("deleteBtn").style.display = "none"
-        document.getElementById("text-loader-delete").style.display = "block"
+        toggleDeleteLoading(true)
         let value = document.getElementById("btnModalDelete").getAttribute("indexKey")
         
         setItemData(itemData.filter((newData, index) => index != value))
         
         setTimeout(() => {
-            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
-            document.getElementById("deleteBtn").style.display = "block"
-            document.getElementById("text-loader-delete").style.display = "none"
+            toggleDeleteLoading(false)
             closeModal("modalOverlayDelete", "modalDelete")
         }, 300);
     }
@@ -453,28 +501,8 @@ function CRUD(){
 
     // DELETE-SELECTED-EXPENSE
 
-    // function deleteSelectedExpense(){
-    //     const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
-    //     const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
-        
-    //     setItemData(updatedData);
-
-    //     indicesToRemove.map((data) => {
-    //         const element = document.getElementById(`item` + data);
-    //         if (selectedItemsListRef.current.includes(data)) {
-    //             const pos = selectedItemsListRef.current.indexOf(data);
-    //             if (pos !== -1) selectedItemsListRef.current.splice(pos, 1);
-    //             if (element) element.style.opacity = "1";
-    //         }
-    //     })
-        
-    //     selectedItemsListRef.current = [];
-    //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    // }
     function deleteSelectedExpense(){
-        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
-        document.getElementById("deleteBtn").style.display = "none"
-        document.getElementById("text-loader-delete").style.display = "block"
+        toggleDeleteLoading(true)
         const indicesToRemove = selectedItemsListRef.current.map(i => parseInt(i));
         const updatedData = itemData.filter((_, itemIndex) => !indicesToRemove.includes(itemIndex));
         
@@ -492,10 +520,7 @@ function CRUD(){
         selectedItemsListRef.current = [];
         
         setTimeout(() => {
-            // setDeleteLoading(false);
-            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
-            document.getElementById("deleteBtn").style.display = "block"
-            document.getElementById("text-loader-delete").style.display = "none"
+            toggleDeleteLoading(false)
             closeModal("modalOverlayDeleteAll", "modalDeleteAll")
         }, 300);
     }
@@ -504,24 +529,14 @@ function CRUD(){
 
     // DELETE-ALL-EXPENSE
 
-    // function deleteAllExpense(){
-    //     setItemData([])
-    //     setOriginalData([])
-    //     setSearchData([])
-    //     closeModal("modalOverlayDeleteAll", "modalDeleteAll")
-    // }
     function deleteAllExpense(){
-        document.getElementById("deleteBtnWrap").style.pointerEvents = "none"
-        document.getElementById("deleteBtn").style.display = "none"
-        document.getElementById("text-loader-delete").style.display = "block"
+        toggleDeleteLoading(true)
         setItemData([])
         setOriginalData([])
         setSearchData([])
         
         setTimeout(() => {
-            document.getElementById("deleteBtnWrap").style.pointerEvents = "auto"
-            document.getElementById("deleteBtn").style.display = "block"
-            document.getElementById("text-loader-delete").style.display = "none"
+            toggleDeleteLoading(false)
             closeModal("modalOverlayDeleteAll", "modalDeleteAll")
         }, 300);
     }
@@ -551,34 +566,19 @@ function CRUD(){
         let nameAddCheck = nameAddArray.filter((name) => isNaN(name) && isNaN(parseFloat(name)))
 
         let priceAddArray = price.split(",")
-        let priceAddCheck = priceAddArray.filter((price) => {
-            if (typeof price === "number") return true;
-            if (typeof price === "string") return /^-?\d+(\.\d+)?$/.test(price.trim());
-            return false;
-        })
+        let priceAddCheck = priceAddArray.filter(isValidPriceToken)
 
-        const dateAddFilter = (str) => {
-        const regex = /^([0-2][0-9]|3[0-1])-(0[1-9]|1[0-2])-\d{4}$/;
-        if (!regex.test(str)) return false;
-        const [day, month, year] = str.split("-").map(Number);
-        const date = new Date(year, month - 1, day);
-        return (
-            date.getFullYear() === year &&
-            date.getMonth() === month - 1 &&
-            date.getDate() === day
-        );
-        };
         let dateAddArray = date.split(",").map((item) => item.trim())
         let validDates;
         if (dateAddArray.length === 1 && dateAddArray[0].endsWith("...")) {
-        const singleDate = dateAddArray[0].replace("...", "").trim();
-        if (dateAddFilter(singleDate)) {
-            validDates = Array(nameAddCheck.length).fill(singleDate);
+            const singleDate = dateAddArray[0].replace("...", "").trim();
+            if (isValidNewDateToken(singleDate)) {
+                validDates = Array(nameAddCheck.length).fill(singleDate);
+            } else {
+                validDates = Array(nameAddCheck.length).fill("None");
+            }
         } else {
-            validDates = Array(nameAddCheck.length).fill("None");
-        }
-        } else {
-        validDates = dateAddArray.filter(dateAddFilter);
+            validDates = dateAddArray.filter(isValidNewDateToken);
         }
 
         let hasError = false
@@ -615,72 +615,6 @@ function CRUD(){
 
     // UPDATE-EXPENSE
 
-    // function updateExpense(){
-    //     const name = document.getElementById("updateModalNameData").value
-    //     const price = document.getElementById("updateModalPriceData").value
-    //     let date = document.getElementById("updateModalDateData").value
-
-    //     const dataKey = document.getElementById("updateModalNameData").getAttribute("data-key")
-    //     const indexToUpdate = parseInt(dataKey)
-
-    //     let nameCheck
-    //     if(isNaN(name) && isNaN(parseFloat(name))){
-    //         nameCheck = name
-    //     }
-
-    //     let priceCheck;
-    //     if (typeof price === "number"){
-    //         priceCheck = parseFloat(price)
-    //     } else if (typeof price === "string" && /^-?\d+(\.\d+)?$/.test(price.trim())) {
-    //         priceCheck = parseFloat(price.trim())
-    //     }
-
-    //     const originalItem = itemData[indexToUpdate]
-    //     const isValid = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/.test(date)
-    //     if(isValid){
-    //         originalItem.itemDate = date
-    //     }
-
-    //     const updatedItem = {
-    //         itemName: nameCheck || originalItem.itemName,
-    //         itemPrice: priceCheck ? `${priceCheck}$` : originalItem.itemPrice,
-    //         itemDate: date || originalItem.itemDate
-    //     }
-
-    //     let hasError = false
-    //     const isNameInvalid = !nameCheck;
-    //     const isPriceInvalid = priceCheck === undefined;
-    //     const isDateInvalid = !isValid;
-
-    //     if(name.length != 0){
-    //         if (isNameInvalid){
-    //             hasError= true
-    //             setError("Name Error!");
-    //             return;
-    //         }
-    //     }
-    //     if(price.length != 0){
-    //         if (isPriceInvalid){
-    //             hasError= true
-    //             setError("Price Error!");
-    //             return;
-    //         }
-    //     }
-    //     if(date != "" || date == "None"){
-    //         if (isDateInvalid){
-    //             hasError= true
-    //             setError("Date Error!");
-    //             return;
-    //         }
-    //     }
-
-    //     if(hasError == false){
-    //         const updatedData = [...itemData]
-    //         updatedData[indexToUpdate] = updatedItem
-    //         setItemData(updatedData)
-    //         closeModal("modalOverlayUpdate", "modalUpdate")
-    //     }
-    // }
     function updateExpense(){
         document.getElementById("updateBtnWrap").style.pointerEvents = "none"
         document.getElementById("updateBtn").style.display = "none"
@@ -698,22 +632,17 @@ function CRUD(){
         }
 
         let priceCheck;
-        if (typeof price === "number"){
-            priceCheck = parseFloat(price)
-        } else if (typeof price === "string" && /^-?\d+(\.\d+)?$/.test(price.trim())) {
-            priceCheck = parseFloat(price.trim())
+        if (isValidPriceToken(price)) {
+            priceCheck = parseFloat(typeof price === "number" ? price : price.trim());
         }
 
         const originalItem = itemData[indexToUpdate]
         const isValid = /^(0[1-9]|[12][0-9]|3[01])-(0[1-9]|1[0-2])-\d{4}$/.test(date)
-        if(isValid){
-            originalItem.itemDate = date
-        }
 
         const updatedItem = {
             itemName: nameCheck || originalItem.itemName,
             itemPrice: priceCheck ? `${priceCheck}$` : originalItem.itemPrice,
-            itemDate: date || originalItem.itemDate
+            itemDate: (date && isValid) ? date : originalItem.itemDate
         }
 
         let hasError = false
@@ -770,91 +699,6 @@ function CRUD(){
 
     // SORT
 
-    // useEffect(() => {
-    //     let sortSaved = JSON.parse(localStorage.getItem("sortPreference"))
-    //     if(sortSaved){
-    //         setSortName(sortSaved.sortValue)
-    //         setSortCount(sortSaved.sortNumber)
-    //     }
-    // }, [])
-
-    // function sortBy(){
-    //     const sorted = [...itemData]
-
-    //     function getNumericPrice(priceStr) {
-    //         const cleaned = parseFloat(priceStr?.replace(/[^0-9.]/g, ""));
-    //         return isNaN(cleaned) ? -Infinity : cleaned;
-    //     }
-    //     function parseDate(dateStr) {
-    //         if (!dateStr || dateStr.toLowerCase() === "none") return -Infinity;
-    //         const [day, month, year] = dateStr.split("-").map(Number);
-    //         const date = new Date(year, month - 1, day);
-    //         return isNaN(date.getTime()) ? -Infinity : date.getTime();
-    //     }
-
-    //     if(sortCount == 0){
-    //         setSortName("A-Z")
-    //         setSortCount(1)
-    //         sorted.sort((a,b) => a.itemName.trim().localeCompare(b.itemName.trim()))
-    //         const sortPreference = {
-    //             sortNumber: 1,
-    //             sortValue: "A-Z"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     } else if(sortCount == 1){
-    //         setSortName("Z-A")
-    //         setSortCount(2)
-    //         sorted.sort((a,b) => b.itemName.trim().localeCompare(a.itemName.trim()))
-    //         const sortPreference = {
-    //             sortNumber: 2,
-    //             sortValue: "Z-A"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     } else if(sortCount == 2){
-    //         setSortName("0-1")
-    //         setSortCount(3)
-    //         sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
-    //         const sortPreference = {
-    //             sortNumber: 3,
-    //             sortValue: "0-1"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     } else if(sortCount == 3){
-    //         setSortName("1-0")
-    //         setSortCount(4)
-    //         sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
-    //         const sortPreference = {
-    //             sortNumber: 4,
-    //             sortValue: "1-0"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     } else if(sortCount == 4){
-    //         setSortName("00-00-0000")
-    //         setSortCount(5)
-    //         sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
-    //         const sortPreference = {
-    //             sortNumber: 5,
-    //             sortValue: "00-00-0000"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     } else if(sortCount == 5){
-    //         setSortName("11-11-1111")
-    //         setSortCount(0)
-    //         sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
-    //         const sortPreference = {
-    //             sortNumber: 0,
-    //             sortValue: "11-11-1111"
-    //         }
-    //         localStorage.setItem("sortPreference", JSON.stringify(sortPreference))
-    //         setItemData(sorted)
-    //     }
-    // }
-
     useEffect(() => {
         const sortSaved = JSON.parse(localStorage.getItem("sortPreference"));
         if (sortSaved) {
@@ -880,22 +724,22 @@ function CRUD(){
         }
 
         switch(sortType) {
-            case 1: // A-Z
+            case 1:
                 sorted.sort((a, b) => a.itemName.trim().localeCompare(b.itemName.trim()));
                 break;
-            case 2: // Z-A
+            case 2:
                 sorted.sort((a, b) => b.itemName.trim().localeCompare(a.itemName.trim()));
                 break;
-            case 3: // Price Low-High
+            case 3:
                 sorted.sort((a, b) => getNumericPrice(a.itemPrice) - getNumericPrice(b.itemPrice));
                 break;
-            case 4: // Price High-Low
+            case 4:
                 sorted.sort((a, b) => getNumericPrice(b.itemPrice) - getNumericPrice(a.itemPrice));
                 break;
-            case 5: // Date Old-New
+            case 5:
                 sorted.sort((a, b) => parseDate(a.itemDate) - parseDate(b.itemDate));
                 break;
-            case 0: // Date New-Old
+            case 0:
                 sorted.sort((a, b) => parseDate(b.itemDate) - parseDate(a.itemDate));
                 break;
         }
@@ -918,36 +762,22 @@ function CRUD(){
         setShowSortDropdown(false);
     }
 
-    const sortOptions = [
-        { value: 1, label: "A-Z" },
-        { value: 2, label: "Z-A" },
-        { value: 3, label: "0-1" },
-        { value: 4, label: "1-0" },
-        { value: 5, label: "00-00-0000" },
-        { value: 0, label: "11-11-1111" }
-    ];
-
 
     // SYMMETRY
 
-    let topBarButtonsWidth1
-    let topBarButtonsWidth2
-    let topBarButtonsWidth3
-    let topBarButtonsWidth4
-    const getScreenWidth = () => {
-        if(window.innerWidth <= 450){
-            topBarButtonsWidth1 = "6em"
-            topBarButtonsWidth2 = "6em"
-            topBarButtonsWidth3 = "7.75em"
-            topBarButtonsWidth4 = "100%"
-        } else {
-            topBarButtonsWidth1 = "2.75em"
-            topBarButtonsWidth2 = "5em"
-            topBarButtonsWidth3 = "8.75em"
-            topBarButtonsWidth4 = "7.75em"
-        }
-    }
-    getScreenWidth()
+    const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+    useEffect(() => {
+        const handleResize = () => setWindowWidth(window.innerWidth);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const {
+        w1: topBarButtonsWidth1,
+        w2: topBarButtonsWidth2,
+        w3: topBarButtonsWidth3,
+        w4: topBarButtonsWidth4,
+    } = computeTopBarWidths(windowWidth);
 
 
     // KEYBOARD
@@ -959,207 +789,80 @@ function CRUD(){
         keyboardModeRef.current = keyboardMode;
     }, [keyboardMode]);
 
-    // useEffect(() => {
-    //     const handleKeyDown = (event) => {
-    //     const updateModal = document.getElementById("modalOverlayUpdate");
-    //     const addModal = document.getElementById("modalOverlayAdd");
-    //     const deleteModal = document.getElementById("modalOverlayDelete");
-    //     const infoModal = document.getElementById("modalOverlayInfo");
-    //     const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
-    //     const logoutModal = document.getElementById("modalOverlayLogout");
-
-    //     const modalVisible =
-    //         updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
-
-    //     let focusScope = document;
-    //     if (updateModal?.style.display === "flex") {
-    //         focusScope = updateModal;
-    //     } else if (addModal?.style.display === "flex") {
-    //         focusScope = addModal;
-    //     } else if (deleteModal?.style.display === "flex") {
-    //         focusScope = deleteModal;
-    //     } else if (infoModal?.style.display === "flex") {
-    //         focusScope = infoModal;
-    //     } else if (deleteAllModal?.style.display === "flex") {
-    //         focusScope = deleteAllModal;
-    //     } else if (logoutModal?.style.display === "flex") {
-    //         focusScope = logoutModal;
-    //     }
-
-    //     const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
-
-    //     const activeElement = document.activeElement;
-    //     const isTyping =
-    //         activeElement &&
-    //         (activeElement.tagName === "INPUT" ||
-    //         activeElement.tagName === "TEXTAREA" ||
-    //         activeElement.isContentEditable);
-
-    //     if (!modalVisible && !isTyping) {
-    //         if (event.key.toLowerCase() === "a") {
-    //             const button = document.getElementById("btnAddOpen");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "p") {
-    //             const button = document.getElementById("btnDownloadImg");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "f") {
-    //             const button = document.getElementById("findBtn");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "s") {
-    //             const button = document.getElementById("sortBtn");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "t") {
-    //             const button = document.getElementById("themeBtn");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "i") {
-    //             const button = document.getElementById("infoBtn");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "l") {
-    //             const button = document.getElementById("btnLogoutOpen");
-    //             if (button) button.click();
-    //         }
-    //         if (event.key.toLowerCase() === "o" && statsPress.current === true) {
-    //             const button = document.getElementById("statsBtn");
-    //             if (button) button.click();
-    //         }
-    //         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
-    //             event.preventDefault();
-    //             const button = document.getElementById("btnDeleteAllOpen");
-    //             if (button) button.click();
-    //         }
-    //         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-    //             event.preventDefault();
-    //             const inputFocus = document.getElementById("findInput");
-    //             if (inputFocus) inputFocus.focus();
-    //         }
-    //     }
-
-    //     if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
-    //         if (updateModal?.style.display === "flex") {
-    //         const button = document.getElementById("btnModalUpdate");
-    //         if (button) button.click();
-    //         } else if (addModal?.style.display === "flex") {
-    //         const button = document.getElementById("btnModalAdd");
-    //         if (button) button.click();
-    //         } else if (deleteModal?.style.display === "flex") {
-    //         const button = document.getElementById("btnModalDelete");
-    //         if (button) button.click();
-    //         } else if (deleteAllModal?.style.display === "flex") {
-    //         const button = document.getElementById("btnModalDeleteAll");
-    //         if (button) button.click();
-    //         } else if (logoutModal?.style.display === "flex") {
-    //         const button = document.getElementById("btnModalLogout");
-    //         if (button) button.click();
-    //         }
-    //     }
-
-    //     if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
-    //         event.preventDefault();
-    //         setKeyboardMode(true);
-    //         const focusable = getFocusable();
-    //         const currentIndex = focusable.indexOf(document.activeElement);
-    //         const nextIndex = (currentIndex + 1) % focusable.length;
-    //         focusable[nextIndex]?.focus();
-    //     }
-
-    //     if (["ArrowUp"].includes(event.key) || (["ArrowLeft"].includes(event.key) && (!isTyping))) {
-    //         event.preventDefault();
-    //         setKeyboardMode(true);
-    //         const focusable = getFocusable();
-    //         const currentIndex = focusable.indexOf(document.activeElement);
-    //         const prevIndex = currentIndex === 0 ? focusable.length - 1 : currentIndex - 1;
-    //         focusable[prevIndex]?.focus();
-    //     }
-
-    //     if (event.key === "Enter" && !event.shiftKey && keyboardModeRef.current) {
-    //         event.preventDefault();
-    //         const el = document.activeElement;
-    //         if (el) {
-    //         el.classList.add("key-press-active");
-    //         setTimeout(() => {
-    //             el.classList.remove("key-press-active");
-    //         }, 100);
-
-    //         ["mousedown", "mouseup", "click"].forEach((type) => {
-    //             const evt = new MouseEvent(type, {
-    //             bubbles: true,
-    //             cancelable: true,
-    //             view: window,
-    //             });
-    //             el.dispatchEvent(evt);
-    //         });
-    //         }
-    //     }
-
-    //     if (event.key === "Escape") {
-    //         setKeyboardMode(false);
-    //         document.activeElement.blur();
-
-    //         if (updateModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnUpdate");
-    //         if (button) button.click();
-    //         } else if (addModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnAdd");
-    //         if (button) button.click();
-    //         } else if (deleteModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnDelete");
-    //         if (button) button.click();
-    //         } else if (infoModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnInfo");
-    //         if (button) button.click();
-    //         } else if (deleteAllModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnDeleteAll");
-    //         if (button) button.click();
-    //         } else if (logoutModal?.style.display === "flex") {
-    //         const button = document.getElementById("cancelBtnLogout");
-    //         if (button) button.click();
-    //         }
-    //     }
-    //     };
-
-    //     document.addEventListener("keydown", handleKeyDown);
-    //     return () => document.removeEventListener("keydown", handleKeyDown);
-    // }, []);
-
     useEffect(() => {
-        const handleKeyDown = (event) => {
-            const updateModal = document.getElementById("modalOverlayUpdate");
-            const addModal = document.getElementById("modalOverlayAdd");
-            const deleteModal = document.getElementById("modalOverlayDelete");
-            const infoModal = document.getElementById("modalOverlayInfo");
-            const deleteAllModal = document.getElementById("modalOverlayDeleteAll");
-            const logoutModal = document.getElementById("modalOverlayLogout");
+        const getModals = () => ({
+            updateModal: document.getElementById("modalOverlayUpdate"),
+            addModal: document.getElementById("modalOverlayAdd"),
+            deleteModal: document.getElementById("modalOverlayDelete"),
+            infoModal: document.getElementById("modalOverlayInfo"),
+            deleteAllModal: document.getElementById("modalOverlayDeleteAll"),
+            logoutModal: document.getElementById("modalOverlayLogout"),
+        });
 
-            const modalVisible =
-                updateModal?.style.display === "flex" || addModal?.style.display === "flex" || deleteModal?.style.display === "flex" || infoModal?.style.display === "flex" || deleteAllModal?.style.display === "flex" || logoutModal?.style.display === "flex";
+        const isAnyModalVisible = (modals) =>
+            Object.values(modals).some(modal => modal?.style.display === "flex");
 
-            let focusScope = document;
-            if (updateModal?.style.display === "flex") {
-                focusScope = updateModal;
-            } else if (addModal?.style.display === "flex") {
-                focusScope = addModal;
-            } else if (deleteModal?.style.display === "flex") {
-                focusScope = deleteModal;
-            } else if (infoModal?.style.display === "flex") {
-                focusScope = infoModal;
-            } else if (deleteAllModal?.style.display === "flex") {
-                focusScope = deleteAllModal;
-            } else if (logoutModal?.style.display === "flex") {
-                focusScope = logoutModal;
-            } else if (activeDropdown === 'sort' && showSortDropdown) {
-                focusScope = document.querySelector('.sortDropdownWrapper .dropdownMenu');
-            } else if (activeDropdown === 'year' && showYearDropdown) {
-                focusScope = document.querySelector('.yearDropdownWrapper .dropdownMenu');
-            } else if (activeDropdown === 'month' && showMonthDropdown) {
-                focusScope = document.querySelector('.monthDropdownWrapper .dropdownMenu');
+        const getFocusScope = (modals) => {
+            if (modals.updateModal?.style.display === "flex") return modals.updateModal;
+            if (modals.addModal?.style.display === "flex") return modals.addModal;
+            if (modals.deleteModal?.style.display === "flex") return modals.deleteModal;
+            if (modals.infoModal?.style.display === "flex") return modals.infoModal;
+            if (modals.deleteAllModal?.style.display === "flex") return modals.deleteAllModal;
+            if (modals.logoutModal?.style.display === "flex") return modals.logoutModal;
+            if (activeDropdown === 'sort' && showSortDropdown) return document.querySelector('.sortDropdownWrapper .dropdownMenu');
+            if (activeDropdown === 'year' && showYearDropdown) return document.querySelector('.yearDropdownWrapper .dropdownMenu');
+            if (activeDropdown === 'month' && showMonthDropdown) return document.querySelector('.monthDropdownWrapper .dropdownMenu');
+            return document;
+        };
+
+        const openFilterDropdown = (buttonId, dropdownType, wrapperClass) => {
+            const button = document.getElementById(buttonId);
+            if (button) {
+                button.click();
+                setActiveDropdown(dropdownType);
+                setTimeout(() => {
+                    const firstOption = document.querySelector(`.${wrapperClass} .dropdownMenu [tabindex="0"]`);
+                    if (firstOption) firstOption.focus();
+                }, 50);
             }
+        };
 
+        const handleModalEnter = (modals) => {
+            if (modals.updateModal?.style.display === "flex") document.getElementById("btnModalUpdate")?.click();
+            else if (modals.addModal?.style.display === "flex") document.getElementById("btnModalAdd")?.click();
+            else if (modals.deleteModal?.style.display === "flex") document.getElementById("btnModalDelete")?.click();
+            else if (modals.deleteAllModal?.style.display === "flex") document.getElementById("btnModalDeleteAll")?.click();
+            else if (modals.logoutModal?.style.display === "flex") document.getElementById("btnModalLogout")?.click();
+        };
+
+        const handleEscape = (modals) => {
+            setKeyboardMode(false);
+            document.activeElement.blur();
+
+            if (showSortDropdown || showYearDropdown || showMonthDropdown) {
+                setShowSortDropdown(false);
+                setShowYearDropdown(false);
+                setShowMonthDropdown(false);
+                setActiveDropdown(null);
+            } else if (modals.updateModal?.style.display === "flex") {
+                document.getElementById("cancelBtnUpdate")?.click();
+            } else if (modals.addModal?.style.display === "flex") {
+                document.getElementById("cancelBtnAdd")?.click();
+            } else if (modals.deleteModal?.style.display === "flex") {
+                document.getElementById("cancelBtnDelete")?.click();
+            } else if (modals.infoModal?.style.display === "flex") {
+                document.getElementById("cancelBtnInfo")?.click();
+            } else if (modals.deleteAllModal?.style.display === "flex") {
+                document.getElementById("cancelBtnDeleteAll")?.click();
+            } else if (modals.logoutModal?.style.display === "flex") {
+                document.getElementById("cancelBtnLogout")?.click();
+            }
+        };
+
+        const handleKeyDown = (event) => {
+            const modals = getModals();
+            const modalVisible = isAnyModalVisible(modals);
+            const focusScope = getFocusScope(modals) || document;
             const getFocusable = () => Array.from(focusScope.querySelectorAll('[tabindex="0"]'));
 
             const activeElement = document.activeElement;
@@ -1170,99 +873,29 @@ function CRUD(){
                 activeElement.isContentEditable);
 
             if (!modalVisible && !isTyping) {
-                if (event.key.toLowerCase() === "a") {
-                    const button = document.getElementById("btnAddOpen");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "p") {
-                    const button = document.getElementById("btnDownloadImg");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "f") {
-                    const button = document.getElementById("findBtn");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "s") {
+                const key = event.key.toLowerCase();
+                if (key === "a") document.getElementById("btnAddOpen")?.click();
+                if (key === "p") document.getElementById("btnDownloadImg")?.click();
+                if (key === "f") document.getElementById("findBtn")?.click();
+                if (key === "s") { event.preventDefault(); openFilterDropdown("sortBtn", "sort", "sortDropdownWrapper"); }
+                if (key === "m") { event.preventDefault(); openFilterDropdown("monthFilterBtn", "month", "monthDropdownWrapper"); }
+                if (key === "y") { event.preventDefault(); openFilterDropdown("yearFilterBtn", "year", "yearDropdownWrapper"); }
+                if (key === "t") document.getElementById("themeBtn")?.click();
+                if (key === "i") document.getElementById("infoBtn")?.click();
+                if (key === "l") document.getElementById("btnLogoutOpen")?.click();
+                if (key === "o" && statsPress.current === true) document.getElementById("statsBtn")?.click();
+                if ((event.ctrlKey || event.metaKey) && key === "d") {
                     event.preventDefault();
-                    const button = document.getElementById("sortBtn");
-                    if (button) {
-                        button.click();
-                        setActiveDropdown('sort');
-                        setTimeout(() => {
-                            const firstOption = document.querySelector('.sortDropdownWrapper .dropdownMenu [tabindex="0"]');
-                            if (firstOption) firstOption.focus();
-                        }, 50);
-                    }
+                    document.getElementById("btnDeleteAllOpen")?.click();
                 }
-                if (event.key.toLowerCase() === "m") {
+                if ((event.ctrlKey || event.metaKey) && key === "k") {
                     event.preventDefault();
-                    const button = document.getElementById("monthFilterBtn");
-                    if (button) {
-                        button.click();
-                        setActiveDropdown('month');
-                        setTimeout(() => {
-                            const firstOption = document.querySelector('.monthDropdownWrapper .dropdownMenu [tabindex="0"]');
-                            if (firstOption) firstOption.focus();
-                        }, 50);
-                    }
-                }
-                if (event.key.toLowerCase() === "y") {
-                    event.preventDefault();
-                    const button = document.getElementById("yearFilterBtn");
-                    if (button) {
-                        button.click();
-                        setActiveDropdown('year');
-                        setTimeout(() => {
-                            const firstOption = document.querySelector('.yearDropdownWrapper .dropdownMenu [tabindex="0"]');
-                            if (firstOption) firstOption.focus();
-                        }, 50);
-                    }
-                }
-                if (event.key.toLowerCase() === "t") {
-                    const button = document.getElementById("themeBtn");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "i") {
-                    const button = document.getElementById("infoBtn");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "l") {
-                    const button = document.getElementById("btnLogoutOpen");
-                    if (button) button.click();
-                }
-                if (event.key.toLowerCase() === "o" && statsPress.current === true) {
-                    const button = document.getElementById("statsBtn");
-                    if (button) button.click();
-                }
-                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d") {
-                    event.preventDefault();
-                    const button = document.getElementById("btnDeleteAllOpen");
-                    if (button) button.click();
-                }
-                if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
-                    event.preventDefault();
-                    const inputFocus = document.getElementById("findInput");
-                    if (inputFocus) inputFocus.focus();
+                    document.getElementById("findInput")?.focus();
                 }
             }
 
             if (event.key === "Enter" && !event.shiftKey && !keyboardModeRef.current) {
-                if (updateModal?.style.display === "flex") {
-                    const button = document.getElementById("btnModalUpdate");
-                    if (button) button.click();
-                } else if (addModal?.style.display === "flex") {
-                    const button = document.getElementById("btnModalAdd");
-                    if (button) button.click();
-                } else if (deleteModal?.style.display === "flex") {
-                    const button = document.getElementById("btnModalDelete");
-                    if (button) button.click();
-                } else if (deleteAllModal?.style.display === "flex") {
-                    const button = document.getElementById("btnModalDeleteAll");
-                    if (button) button.click();
-                } else if (logoutModal?.style.display === "flex") {
-                    const button = document.getElementById("btnModalLogout");
-                    if (button) button.click();
-                }
+                handleModalEnter(modals);
             }
 
             if (["ArrowDown"].includes(event.key) || (["ArrowRight"].includes(event.key) && (!isTyping))) {
@@ -1304,33 +937,7 @@ function CRUD(){
             }
 
             if (event.key === "Escape") {
-                setKeyboardMode(false);
-                document.activeElement.blur();
-
-                if (showSortDropdown || showYearDropdown || showMonthDropdown) {
-                    setShowSortDropdown(false);
-                    setShowYearDropdown(false);
-                    setShowMonthDropdown(false);
-                    setActiveDropdown(null);
-                } else if (updateModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnUpdate");
-                    if (button) button.click();
-                } else if (addModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnAdd");
-                    if (button) button.click();
-                } else if (deleteModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnDelete");
-                    if (button) button.click();
-                } else if (infoModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnInfo");
-                    if (button) button.click();
-                } else if (deleteAllModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnDeleteAll");
-                    if (button) button.click();
-                } else if (logoutModal?.style.display === "flex") {
-                    const button = document.getElementById("cancelBtnLogout");
-                    if (button) button.click();
-                }
+                handleEscape(modals);
             }
         };
 
@@ -1425,11 +1032,32 @@ function CRUD(){
         navigate(`/${username}/Stats`, { state: { statsData: itemData } });
     }
 
-    const debouncedSearch = useMemo(() => debounce(searchedData, 300), [originalData, searchName]);
+    const debouncedSearch = useMemo(() => debounce(searchedData, 300), [filteredByDate, searchName]);
+
+    useEffect(() => {
+        return () => {
+            debouncedSearch.cancel();
+        };
+    }, [debouncedSearch]);
 
     const handleRedirect = () => {
-        window.open('https://praashoo7.github.io/NFS-MW-MenuCard/', '_blank'); // Replace with your desired URL
+        window.open('https://praashoo7.github.io/NFS-MW-MenuCard/', '_blank');
     };
+
+    const rows = searching ? searchData : filteredByDate;
+    const rowVirtualizer = useVirtualizer({
+        count: rows.length,
+        getScrollElement: () => listParentRef.current,
+        estimateSize: () => 68,
+        overscan: 8,
+    });
+    const deleteListParentRef = useRef(null);
+    const deleteRowVirtualizer = useVirtualizer({
+        count: itemData.length,
+        getScrollElement: () => deleteListParentRef.current,
+        estimateSize: () => 80,
+        overscan: 8,
+    });
 
 
     return(
@@ -1452,7 +1080,6 @@ function CRUD(){
                 <div className="sortBtns">
                     <span className="userNameWrapper">[<span className="userName" title={username}>{username}</span>]</span>
                     <div className="statSort">
-                        {/* <NButton btnID={"sortBtn"} clickData={sortBy} width={topBarButtonsWidth4} btnName={sortName}/> */}
                         <div className="filterDropdownWrapper sortDropdownWrapper">
                             <NButton 
                                 btnID={"sortBtn"}
@@ -1461,7 +1088,6 @@ function CRUD(){
                                     setShowYearDropdown(false);
                                     setShowMonthDropdown(false);
                                 }}
-                                // width={topBarButtonsWidth4}
                                 width={"7.5em"}
                                 btnName={sortName}
                             />
@@ -1557,39 +1183,46 @@ function CRUD(){
                             )}
                         </div>
                         <NButton btnID={"statsBtn"} clickData={handleStats} 
-                            // width={topBarButtonsWidth4} 
                             width={"4.5em"} height={"2.5em"} btnName={"Stats"}
                         />
-                        {/* {(filterYear !== "All" || filterMonth !== "All") && (
-                            <NButton 
-                                btnID={"resetFilterBtn"}
-                                clickData={resetFilters}
-                                width={"fit-content"}
-                                btnName={"Reset Filters"}
-                            />
-                        )} */}
                     </div>
                 </div>
                 <div className="dataItemsWrap">
-                <div className="dataItems">
-                    <div className="noData" id="noData" style={{ opacity: messageOpacity }}>No Expenses!</div>
-                    {(searching ? searchData : filteredByDate).map((item, index) => (
-                    <React.Fragment key={index}>
-                    <div className="item">
-                        <div className="itemData">
-                            <span className="itemIndex" style={{ textWrap: "nowrap" }}>[ {index} ]</span>
-                            <span className="itemName" title={item.itemName} style={{ userSelect: "none", maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.itemName}</span>
-                            <span style={{ fontWeight: "bold" }} className="itemExpense">- {item.itemPrice}</span>
-                        </div>
-                        <div className="dataBtns">
-                            <span className="itemDate">{item.itemDate}</span>
-                            <NButton clickData={() => openModal(index, "Update")} width={"7em"} btnName={"Update"} />
-                            <NButton clickData={() => openModal(index, "Delete")} width={"7em"} btnName={"Delete"} />
-                        </div>
+                <div className="dataItems" ref={listParentRef} style={{ position: "relative" }}>
+                    <div className="noData" id="noData" style={{ opacity: messageOpacity, position: "absolute", top: 0, left: 0, right: 0, pointerEvents: "none" }}>No Expenses!</div>
+                    <div style={{ height: `${rowVirtualizer.getTotalSize()}px`, width: "100%", position: "relative" }}>
+                        {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+                            const index = virtualRow.index;
+                            const item = rows[index];
+                            return (
+                                <div
+                                    key={virtualRow.key}
+                                    data-index={virtualRow.index}
+                                    style={{
+                                        position: "absolute",
+                                        top: 0,
+                                        left: 0,
+                                        width: "100%",
+                                        transform: `translateY(${virtualRow.start}px)`,
+                                    }}
+                                >
+                                    <div className="item">
+                                        <div className="itemData">
+                                            <span className="itemIndex" style={{ textWrap: "nowrap" }}>[ {index} ]</span>
+                                            <span className="itemName" title={item.itemName} style={{ userSelect: "none", maxWidth: "150px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{item.itemName}</span>
+                                            <span style={{ fontWeight: "bold" }} className="itemExpense">- {item.itemPrice}</span>
+                                        </div>
+                                        <div className="dataBtns">
+                                            <span className="itemDate">{item.itemDate}</span>
+                                            <NButton clickData={() => openModal(index, "Update")} width={"7em"} btnName={"Update"} />
+                                            <NButton clickData={() => openModal(index, "Delete")} width={"7em"} btnName={"Delete"} />
+                                        </div>
+                                    </div>
+                                    <div className="divider"></div>
+                                </div>
+                            );
+                        })}
                     </div>
-                    <div className="divider"></div>
-                    </React.Fragment>
-                    ))}
                     </div>
                     <div className="cornerBtnE11"></div>
                     <div className="cornerBtnE12"></div>
@@ -1598,30 +1231,11 @@ function CRUD(){
                 </div>
             </div>
             <div className="bottomBar">
-                {(() => {
-                    const calculateTotal = (data) => {
-                        let total = 0;
-                        data.forEach((item) => {
-                            let itemValue = 0;
-                            if(item.itemPrice === "None") { 
-                                itemValue = "0$" 
-                            } else { 
-                                itemValue = item.itemPrice 
-                            }
-                            const allExpenses = parseFloat(itemValue.replace("$",""));
-                            total += allExpenses;
-                        });
-                        return `${total}$`;
-                    };
-
-                    return (
-                        <div className="total">
-                            <span>TOTAL : <span style={{ fontWeight: "bold" }}>
-                                {calculateTotal(searching ? searchData : filteredByDate)}
-                            </span></span>
-                        </div>
-                    );
-                })()}
+                <div className="total">
+                    <span>TOTAL : <span style={{ fontWeight: "bold" }}>
+                        {calculateTotal(searching ? searchData : filteredByDate)}
+                    </span></span>
+                </div>
                 <div className="bBtns">
                     <div className="logoutBtn">
                         <NButton btnID={`btnLogoutOpen`} clickData={() => openModal(null, "Logout")} width={"100%"} height={"2.5em"} btnName={"Logout"} />
@@ -1651,7 +1265,6 @@ function CRUD(){
                     <h1>Update Expense</h1>
                     <input tabIndex={0} autoComplete="off" id="updateModalNameData" type="text" />
                     <input tabIndex={0} autoComplete="off" id="updateModalPriceData" type="text" />
-                    {/* <input tabIndex={0} autoComplete="off" id="updateModalDateData" type="text" /> */}
                     <div style={{ position: 'relative', width: '100%' }}>
                         <input 
                             tabIndex={0} 
@@ -1691,7 +1304,6 @@ function CRUD(){
                     <p style={{ fontSize: "0.8em", opacity: "0.5" }}>{error}</p>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayUpdate", "modalUpdate")} width={"7em"} btnID={"cancelBtnUpdate"} btnName={"Cancel"} />
-                        {/* <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName="Update"/> */}
                         <div className="updateBtnWrap" id="updateBtnWrap">
                             <div id="updateBtn" style={{ width: "100%" }}>
                             <NButton clickData={updateExpense} btnID={`btnModalUpdate`} width={"7em"} btnName={"Update"}/>
@@ -1712,7 +1324,6 @@ function CRUD(){
                     <h1>Add Expense</h1>
                     <textarea tabIndex={0} autoComplete="off" id="addModalNameData" type="text" placeholder="Name" onChange={addBtnCheck} />
                     <textarea tabIndex={0} autoComplete="off" id="addModalPriceData" type="text" placeholder="Price" onChange={addBtnCheck} />
-                    {/* <textarea tabIndex={0} autoComplete="off" id="addModalDateData" type="text" placeholder="Date[DD-MM-YYYY]" onChange={addBtnCheck} /> */}
                     <div className="addDateWrap">
                         <textarea 
                             tabIndex={0} 
@@ -1778,7 +1389,6 @@ function CRUD(){
                     </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDelete", "modalDelete")} width={"7em"} btnID={"cancelBtnDelete"} btnName={"Cancel"} />
-                        {/* <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName="Delete"/> */}
                         <div className="deleteBtnWrap" id="deleteBtnWrap">
                             <div id="deleteBtn" style={{ width: "100%" }}>
                             <NButton clickData={() => deleteExpense()} btnID={`btnModalDelete`} width={"7em"} btnName={"Delete"}/>
@@ -1798,22 +1408,30 @@ function CRUD(){
                 <div className="modal" id="modalDeleteAll">
                     <h1 id="deleteTitle"></h1>
                     <p style={{ opacity: "0.5", fontSize: "0.75em", marginTop: "-1.25em" }}>Click items to delete the selected ones.</p>
-                    <div className="deleteAllData" id="deleteAllData">
+                    <div className="deleteAllData" id="deleteAllData" ref={deleteListParentRef} style={{ overflow: "auto", position: "relative" }}>
                         <div className="noData" id="noDataDelete" style={{ width: "auto",height: "auto", margin: "auto" }}>No Expenses to delete!</div>
-                        {(itemData).map((deleteItem, deleteItemIndex) => (
-                            <div>
-                            <div className="selectableItem" id={`item${deleteItemIndex}`} onClick={() => selectItem(deleteItemIndex)}>
-                                <p id="namePText">Name : {deleteItem.itemName}</p>
-                                <p id="pricePText">Price : {deleteItem.itemPrice}</p>
-                                <p id="datePText">Date : {deleteItem.itemDate}</p>
-                            </div>
-                            <div className="divider1"></div>
-                            </div>
-                        ))}
+                        <div style={{ height: `${deleteRowVirtualizer.getTotalSize()}px`, width: "100%", position: "relative" }}>
+                            {deleteRowVirtualizer.getVirtualItems().map((virtualRow) => {
+                                const deleteItemIndex = virtualRow.index;
+                                const deleteItem = itemData[deleteItemIndex];
+                                return (
+                                    <div
+                                        key={virtualRow.key}
+                                        data-index={virtualRow.index}
+                                    >
+                                        <div className="selectableItem" id={`item${deleteItemIndex}`} onClick={() => selectItem(deleteItemIndex)}>
+                                            <p className="namePText">Name : {deleteItem.itemName}</p>
+                                            <p className="pricePText">Price : {deleteItem.itemPrice}</p>
+                                            <p className="datePText">Date : {deleteItem.itemDate}</p>
+                                        </div>
+                                        <div className="divider1"></div>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
                     <div className="modalBtns">
                         <NButton clickData={() => closeModal("modalOverlayDeleteAll", "modalDeleteAll")} width={"7em"} btnID={"cancelBtnDeleteAll"} btnName={"Cancel"} />
-                        {/* <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName="Delete"/> */}
                         <div className="deleteAllBtnWrap" id="deleteAllBtnWrap">
                             <div id="deleteAllBtn" style={{ width: "100%" }}>
                             <NButton clickData={deleteSelected ? deleteSelectedExpense : deleteAllExpense} btnID={`btnModalDeleteAll`} width={"7em"} btnName={"Delete All"}/>
@@ -1835,19 +1453,9 @@ function CRUD(){
                     <div className="infoData" style={{ fontSize: "0.85em" }}>
                         <div style={{ marginBottom: "0.5em" }}>KeyBoard Shortcuts</div>
                         <div style={{ padding: "1em", backgroundColor:"var(--color10)", display: "flex", gap: "0.5em", flexDirection: "column" }}>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>i</span> : Open Info</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>t</span> : Toggle Theme</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>f</span> : Toggle "Find By"</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>s</span> : Toggle "Sort By"</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>m</span> : Toggle "Month" Filter</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>y</span> : Toggle "Year" Filter</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>o</span> : Open Stats</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>a</span> : Open Add Expense</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>p</span> : Save Image</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>l</span> : Logout</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + k</span> : Find</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ctrl + d</span> : Delete All</li>
-                            <li><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", marginBottom: "0.5em" }}>ESC</span> : Back</li>
+                            {SHORTCUTS_LIST.map(({ key, label }) => (
+                                <li key={key}><span style={keyBadgeStyle}>{key}</span> : {label}</li>
+                            ))}
                         </div>
                         <li style={{ marginTop: "1em", lineHeight: "1.75em" }}>Use <span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟵</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>↑</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0.5em 0.5em 0" }}>⟶</span><span style={{ padding: "0.15em 0.5em 0.15em 0.5em", backgroundColor: "var(--color7)", margin: "0.5em 0 0.5em 0" }}>↓</span>  Arrow keys to navigate through the whole page.</li>
                         <li style={{ marginTop: "0.5em"}}>You can also add multiple values at once while adding expenses by Seperating them with a Coma[","]. Example Usage : Rent, Groceries, Bills | 250, 100, 350 | 01-05-2025, 12-06-2025, 25-06-2025[For Dates just click the "+" button to add more comma seperated dates and click on a specific date to update it.]</li>
@@ -1902,7 +1510,7 @@ function CRUD(){
                 </React.Fragment>
             ))}
             <div className="totalPDF">
-                <span>TOTAL : <span style={{ fontWeight: "bold" }}>{totalExpense()}</span></span>
+                <span>TOTAL : <span style={{ fontWeight: "bold" }}>{calculateTotal(itemData)}</span></span>
             </div>
         </div>
         </>

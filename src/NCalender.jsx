@@ -158,8 +158,8 @@ function DateSelector({ onDateSelect, initialDate = null }) {
         <>
         <style>{`
             .date-selector-container {
-                background-color: #171717;
-                border: 1px solid var(--color14);
+                background-color: var(--color5);
+                border: 1px solid var(--color6);
                 font-size: 0.9em;
                 padding: 0.75em;
                 width: fit-content;

@@ -113,7 +113,11 @@ const Stats = ({ statsData = [] }) => {
     }
   }, [statsToUse, chartView]);
 
-
+  const username = localStorage.getItem("loggedInUsername")
+  const navigate = useNavigate();
+  function handleBack(){
+      navigate(`/${username}`);
+  }
 
   // NO-STATS
 
@@ -371,12 +375,6 @@ const Stats = ({ statsData = [] }) => {
       alert('Failed to save image. Please try again.');
   }
   };
-
-  const username = localStorage.getItem("loggedInUsername")
-  const navigate = useNavigate();
-  function handleBack(){
-      navigate(`/${username}`);
-  }
 
   const totalExpense = processedDataToUse.reduce((sum, item) => sum + item.cleanPrice, 0);
 
