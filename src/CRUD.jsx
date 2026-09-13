@@ -128,7 +128,7 @@ function CRUD(){
     const [sortName, setSortName] = useState("Sort By")
     const [searchCount, setSearchCount] = useState(2)
     const [searchName, setSearchName] = useState("Find By")
-    const [searchData, setSearchData] = useState(originalData)
+    const [searchData, setSearchData] = useState([])
     const [searching, setSearching] = useState(false)
     const [messageOpacity, setMessageOpacity] = useState("0");
     const [loaded, setLoaded] = useState(false);
@@ -1072,7 +1072,18 @@ function CRUD(){
                     </div>
                 </div>
                 <div className="search">
-                    <input tabIndex={0} autoComplete="off" placeholder="Find Expenses" onFocus={() => setSearching(true)} onBlur={() => setSearching(false)} id="findInput" onChange={(e) => debouncedSearch(e.target.value)}/>
+                    <input 
+                        tabIndex={0} 
+                        autoComplete="off" 
+                        placeholder="Find Expenses" 
+                        onFocus={() => {
+                            setSearching(true);
+                            searchedData(lastSearchValueRef.current);
+                        }} 
+                        onBlur={() => setSearching(false)} 
+                        id="findInput" 
+                        onChange={(e) => debouncedSearch(e.target.value)}
+                    />
                     <div className="searchBtns">
                         <NButton btnID={"findBtn"} clickData={searchBy} width={topBarButtonsWidth3} btnName={searchName}/>
                     </div>
