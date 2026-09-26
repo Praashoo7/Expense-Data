@@ -161,42 +161,26 @@ function ForgotPassword() {
     return () => document.removeEventListener("keydown", handleKeyDown);
     }, []);
 
-  const handleEmailSubmit = async (e) => {
-    e.preventDefault();
+    const handleEmailSubmit = async (e) => {
+      e.preventDefault();
       setError("");
+      setMessage("");
 
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
       if (!email) {
-        setMessage("")
         setError("Please enter your email address.");
         return;
-      } else if(!emailRegex.test(email)){
-        setMessage("")
+      } else if (!emailRegex.test(email)) {
         setError("Email looks like this example@domain.com");
         return;
       }
 
       try {
-
         const auth = getAuth();
 
         openModal();
         await new Promise((resolve) => setTimeout(resolve, 400));
-
-        const db = getFirestore();
-        const q = query(
-          collection(db, "users"), 
-          where("email", "==", email)
-        );
-
-        const snapshot = await getDocs(q);
-        if (snapshot.empty) {
-          closeModal()
-          setMessage("")
-          setError("No account found for this email.");
-          return;
-        }
 
         const actionCodeSettings = {
           url: `${window.location.origin}/Expense-Data/#/ResetPassword`,
@@ -204,16 +188,23 @@ function ForgotPassword() {
         };
 
         await sendPasswordResetEmail(auth, email, actionCodeSettings);
+
         closeModal();
         setEmail("");
-        setMessage("Reset Email Sent.")
+        setMessage("Reset Email Sent.");
       } catch (err) {
         closeModal();
-        console.log(err)
-        setMessage("")
-        setError("Failed to send reset link. Double-check the email address or try again.");
+        console.log(err);
+
+        if (err.code === "auth/user-not-found") {
+          setError("No account found for this email.");
+        } else if (err.code === "auth/invalid-email") {
+          setError("Email looks like this example@domain.com");
+        } else {
+          setError("Failed to send reset link. Double-check the email address or try again.");
+        }
       }
-  };
+    };
 
 
   const handleBackToLogin = () => {

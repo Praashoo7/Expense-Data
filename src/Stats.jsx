@@ -1,9 +1,8 @@
 import React, { useState, useMemo, useRef, useEffect } from "react";
-import { useLocation } from "react-router";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import NButton from "./NButton";
 import ThemeToggle from "./ThemeToggle";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Stats = ({ statsData = [] }) => {
   const [chartView, setChartView] = useState("month");
