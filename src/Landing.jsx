@@ -1,5 +1,5 @@
 import NButton from "./NButton"
-import { useNavigate } from "react-router";
+import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import ThemeToggle from "./ThemeToggle";
 
